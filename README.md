@@ -38,7 +38,7 @@ var employee = new Employee
 				Id = 99,
 				Department = new Department {Id = 5, Name = "Test"}
 			};
-			tableStore.Insert(employee);
+tableStore.Insert(employee);
 ```
 
 ### Updating
