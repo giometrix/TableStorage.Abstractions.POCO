@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO", "TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj", "{6C3664E2-AA85-410C-BA2C-81BFFF33B9DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO.ConsoleTest", "TableStorage.Abstractions.POCO.ConsoleTest\TableStorage.Abstractions.POCO.ConsoleTest.csproj", "{D56055AF-B4BF-42B4-9367-2EB9D6D53BDD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO.Tests", "TableStorage.Abstractions.POCO.Tests\TableStorage.Abstractions.POCO.Tests.csproj", "{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}"
 EndProject
 Global
@@ -19,10 +17,6 @@ Global
 		{6C3664E2-AA85-410C-BA2C-81BFFF33B9DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C3664E2-AA85-410C-BA2C-81BFFF33B9DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C3664E2-AA85-410C-BA2C-81BFFF33B9DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D56055AF-B4BF-42B4-9367-2EB9D6D53BDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D56055AF-B4BF-42B4-9367-2EB9D6D53BDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D56055AF-B4BF-42B4-9367-2EB9D6D53BDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D56055AF-B4BF-42B4-9367-2EB9D6D53BDD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
