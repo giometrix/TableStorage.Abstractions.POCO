@@ -62,7 +62,7 @@ var employees = tableStore.GetByPartitionKey(1);
 tableStore.Delete(employee);
 ```
 ### Excluding Properties From Serialization
-You may have some properties that you don't want to persist to Azure Table Storage.
+You may have some properties that you don't want to persist to Azure Table Storage.  To ignore properties, use the ```ignoredProperties``` parameter.
 ```charp
 var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
           e => e.CompanyId, e => e.Id, e=>e.Department);
