@@ -60,7 +60,7 @@ var employee = tableStore.GetRecord(1, 42);
 var employees = tableStore.GetByPartitionKey(1);
 ```
 
-### Delete record
+### Delete Record
 ```charp
 tableStore.Delete(employee);
 ```
@@ -73,3 +73,32 @@ var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDeve
 tableStore.Insert(employee);
 ```
 In this example we ignored the ```Department``` property.
+
+### Calculated Keys
+There may be situations where you want the partition key or row key to be calculated from information outside of your object (such as date, which can be a useful partition key) or where you want to use a fixed key (e.g. you don't need a row key).
+
+Here's a contrived example of using date as a partition key:
+
+```csharp
+var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
+
+var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+partitionProperty: e => e.CompanyId, 
+rowProperty: e => e.Id, 
+calculatedPartitionKey: e => $"{date}_{e.CompanyId}", 
+calculatedRowKey: e => e.Id.ToString(),
+calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
+calculatedRowKeyFromParameter: x => x.ToString(),
+convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), 
+convertRowKey: int.Parse);
+```
+
+It's a little more complicated than I would have liked (I'm open to suggestions), but I'll try to explain the best I can:
+
+```calculatedPartitionKey```: how to build the partition key from the object.  In our case it's date + ```CompanyId```.
+
+```calculatedRowKey```: how to build the row key from the object.  In our case it's ```Id```.
+
+```calculatedPartitionKeyFromParameter```: how to build the calculated partition key from the given partition key.  In our case we would provide ```CompanyId``` and the output would be date + ```CompanyId```.
+
+```calculatedRowFromParameter```: how to build the calculated row key from the given row key.  In our case we would provide ```Id``` and the output would be the stringified version.
