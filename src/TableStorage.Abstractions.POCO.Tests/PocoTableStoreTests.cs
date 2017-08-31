@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace TableStorage.Abstractions.POCO.Tests
 {
@@ -381,7 +383,406 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(2, tableStore.GetRecordCount());
 		}
 
+		[TestMethod]
+		public void insert_record_with_fixed_partition_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", 
+				partitionProperty: null, rowProperty: e=>e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e=>e.Id.ToString(), 
+				calculatedPartitionKeyFromParameter: x=>null,
+				calculatedRowKeyFromParameter:x=>x.ToString(),
+				convertPartitionKey: null, convertRowKey: int.Parse );
 
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var record = ts.GetRecord("SomeString", "1");
+
+			Assert.AreEqual("SomeString", record.PartitionKey);
+			Assert.AreEqual("1", record.RowKey);
+			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
+
+		}
+
+		[TestMethod]
+		public void get_record_with_fixed_partition_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => "SomeString",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: e=>0, convertRowKey: int.Parse);
+			tableStore.DeleteTable();
+			tableStore.CreateTable();
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var record = tableStore.GetRecord("SomeString", "1");
+			Assert.AreEqual(1, record.Id);
+		}
+
+		[TestMethod]
+		public void get_record_with_fixed_partition_key_typed()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => "SomeString",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: e => 0, convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var record = tableStore.GetRecord(int.MinValue, 1); //partition key is bogus in this case
+			Assert.AreEqual(1, record.Id);
+		}
+
+
+		[TestMethod]
+		public void insert_record_with_calculated_partition_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e=>e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString_" + e.CompanyId, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => "SomeString_"+x,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk=>int.Parse(pk.Substring("SomeString_".Length)), convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var record = ts.GetRecord("SomeString_1", "1");
+
+			Assert.AreEqual("SomeString_1", record.PartitionKey);
+			Assert.AreEqual("1", record.RowKey);
+			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
+
+		}
+
+
+		[TestMethod]
+		public void get_record_with_calculated_partition_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e=>e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString_" + e.CompanyId, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => "SomeString_" + x,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("SomeString_".Length)), convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var record = tableStore.GetRecord("SomeString_1", "1");
+
+			Assert.AreEqual(1, record.CompanyId);
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
+		[TestMethod]
+		public void get_record_with_calculated_partition_key_typed()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString_" + e.CompanyId, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => "SomeString_" + x,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("SomeString_".Length)), convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var record = tableStore.GetRecord(1, 1);
+
+			Assert.AreEqual(1, record.CompanyId);
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
+		[TestMethod]
+		public void insert_record_with_fixed_row_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e=>e.CompanyId, rowProperty: null, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord",
+				calculatedPartitionKeyFromParameter: x => x.ToString(),
+				calculatedRowKeyFromParameter: x => "UserRecord",
+				convertPartitionKey: int.Parse, convertRowKey: null);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var record = ts.GetRecord("1", "UserRecord");
+
+			Assert.AreEqual("1", record.PartitionKey);
+			Assert.AreEqual("UserRecord", record.RowKey);
+			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
+
+		}
+
+
+		[TestMethod]
+		public void get_record_with_fixed_row_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: null, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord",
+				calculatedPartitionKeyFromParameter: x => x.ToString(),
+				calculatedRowKeyFromParameter: x => "UserRecord",
+				convertPartitionKey: int.Parse, convertRowKey: null);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			
+			var record = tableStore.GetRecord("1", "UserRecord");
+
+			Assert.AreEqual(1, record.CompanyId);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
+		[TestMethod]
+		public void get_record_with_fixed_row_key_typed()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: null, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord",
+				calculatedPartitionKeyFromParameter: x => x.ToString(),
+				calculatedRowKeyFromParameter: x => "UserRecord",
+				convertPartitionKey: int.Parse, convertRowKey: null);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+
+			var record = tableStore.GetRecord(1, int.MinValue); // rowkey is bogus in this case
+
+			Assert.AreEqual(1, record.CompanyId);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
+		[TestMethod]
+		public void insert_record_with_calculated_row_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e=>e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord_" + e.Id,
+				calculatedPartitionKeyFromParameter: x => x.ToString(),
+				calculatedRowKeyFromParameter: x => "UserRecord_" + x,
+				convertPartitionKey: int.Parse, convertRowKey: rk=>int.Parse(rk.Substring("UserRecord_".Length)));
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var record = ts.GetRecord("1", "UserRecord_1");
+
+			Assert.AreEqual("1", record.PartitionKey);
+			Assert.AreEqual("UserRecord_1", record.RowKey);
+			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
+
+		}
+
+
+		[TestMethod]
+		public void get_record_with_calculated_row_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord_" + e.Id,
+				calculatedPartitionKeyFromParameter: x => x.ToString(),
+				calculatedRowKeyFromParameter: x => "UserRecord_" + x,
+				convertPartitionKey: int.Parse, convertRowKey: rk => int.Parse(rk.Substring("UserRecord_".Length)));
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			
+			var record = tableStore.GetRecord("1", "UserRecord_1");
+
+			Assert.AreEqual(1, record.CompanyId);
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
+		[TestMethod]
+		public void get_record_with_calculated_row_key_typed()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord_" + e.Id,
+				calculatedPartitionKeyFromParameter: x => x.ToString(),
+				calculatedRowKeyFromParameter: x => "UserRecord_" + x,
+				convertPartitionKey: int.Parse, convertRowKey: rk => int.Parse(rk.Substring("UserRecord_".Length)));
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 22,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+
+			var record = tableStore.GetRecord(1, 22);
+
+			Assert.AreEqual(1, record.CompanyId);
+			Assert.AreEqual(22, record.Id);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
+
+		[TestMethod]
+		public void insert_multiple_record_with_fixed_partition_key()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => null,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: null, convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			var employee2 = new Employee
+			{
+				CompanyId = 1,
+				Id = 55,
+				Name = "Mr. Ted QA",
+				Department = new Department { Id = 27, Name = "IT" }
+			};
+
+			tableStore.Insert(new Employee[]{employee, employee2});
+
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var records = ts.GetAllRecords();
+
+			Assert.AreEqual(5, records.Count());
+			Assert.IsTrue(records.Any(r=>r.RowKey == "55" && r.Properties["Name"].StringValue == "Mr. Ted QA"));
+
+		}
+
+
+
+		[TestMethod]
+		public void insert_record_with_calculated_partition_key_using_date()
+		{
+			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
+			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
+
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+
+
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{anotherDate}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => $"{anotherDate}_{x}",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+
+			tableStore2.DeleteTable();
+			tableStore2.CreateTable();
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 142,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+			tableStore2.Insert(employee);
+
+			var record1 = tableStore.GetRecord(1, 142);
+			var record2 = tableStore2.GetRecord(1, 142);
+
+			Assert.IsNotNull(record1);
+			Assert.IsNotNull(record2);
+
+			tableStore2.DeleteTable();
+		}
 		[TestCleanup]
 		public void Cleanup()
 		{

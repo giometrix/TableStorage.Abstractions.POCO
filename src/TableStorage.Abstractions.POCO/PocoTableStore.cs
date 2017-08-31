@@ -16,11 +16,21 @@ namespace TableStorage.Abstractions.POCO
 		private static readonly ConcurrentDictionary<Type, ConstructorInfo> _pagedResultConstructors =
 			new ConcurrentDictionary<Type, ConstructorInfo>();
 
+		private readonly Func<T, string> _calculatedPartitionKey;
+		private readonly Func<T, string> _calculatedRowKey;
+		private readonly Func<TPartitionKey, string> _calculatedPartitionKeyFromParameter;
+		private readonly Func<TRowKey, string> _calculatedRowKeyFromParameter;
+
+		private readonly Func<string, TPartitionKey> _convertPartitionKey;
+		private readonly Func<string, TRowKey> _convertRowKey;
+
+
 		private readonly Expression<Func<T, object>>[] _ignoredProperties;
 
 		private readonly Expression<Func<T, object>> _partitionProperty;
 		private readonly Expression<Func<T, object>> _rowProperty;
 		private readonly TableStore<DynamicTableEntity> _tableStore;
+		private readonly bool _useCalculatedKeys;
 
 		public PocoTableStore(string tableName, string storageConnectionString, Expression<Func<T, object>> partitionProperty,
 			Expression<Func<T, object>> rowProperty, params Expression<Func<T, object>>[] ignoredProperties)
@@ -35,7 +45,13 @@ namespace TableStorage.Abstractions.POCO
 			_rowProperty = rowProperty;
 			_ignoredProperties = ignoredProperties;
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
+
+			_useCalculatedKeys = false;
+			_calculatedPartitionKey = null;
+			_calculatedRowKey = null;
 		}
+
+
 
 		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
 			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
@@ -51,6 +67,74 @@ namespace TableStorage.Abstractions.POCO
 			_ignoredProperties = ignoredProperties;
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
 				retryWaitTimeInSeconds);
+
+			_useCalculatedKeys = false;
+			_calculatedPartitionKey = null;
+			_calculatedRowKey = null;
+		}
+
+
+		public PocoTableStore(string tableName, string storageConnectionString,
+			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
+			Func<T, string> calculatedPartitionKey, Func<T, string> calculatedRowKey,
+			Func<TPartitionKey, string> calculatedPartitionKeyFromParameter,
+			Func<TRowKey, string> calculatedRowKeyFromParameter,
+			Func<string, TPartitionKey> convertPartitionKey, Func<string, TRowKey> convertRowKey,
+			params Expression<Func<T, object>>[] ignoredProperties)
+		{
+			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
+			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
+			if (calculatedPartitionKey == null) throw new ArgumentNullException(nameof(calculatedPartitionKey));
+			if (calculatedRowKey == null) throw new ArgumentNullException(nameof(calculatedRowKey));
+			if (calculatedPartitionKeyFromParameter == null)
+				throw new ArgumentNullException(nameof(calculatedPartitionKeyFromParameter));
+			if (calculatedRowKeyFromParameter == null) throw new ArgumentNullException(nameof(calculatedRowKeyFromParameter));
+
+			_calculatedPartitionKey = calculatedPartitionKey;
+			_calculatedRowKey = calculatedRowKey;
+			_calculatedPartitionKeyFromParameter = calculatedPartitionKeyFromParameter;
+			_calculatedRowKeyFromParameter = calculatedRowKeyFromParameter;
+			_convertPartitionKey = convertPartitionKey;
+			_convertRowKey = convertRowKey;
+			_ignoredProperties = ignoredProperties;
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
+
+			_useCalculatedKeys = true;
+			_partitionProperty = partitionProperty;
+			_rowProperty = rowProperty;
+
+		}
+
+		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
+			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
+			Func<T, string> calculatedPartitionKey, Func<T, string> calculatedRowKey,
+			Func<TPartitionKey, string> calculatedPartitionKeyFromParameter,
+			Func<TRowKey, string> calculatedRowKeyFromParameter,
+			Func<string, TPartitionKey> convertPartitionKey, Func<string, TRowKey> convertRowKey,
+			params Expression<Func<T, object>>[] ignoredProperties)
+		{
+			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
+			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
+			if (calculatedPartitionKey == null) throw new ArgumentNullException(nameof(calculatedPartitionKey));
+			if (calculatedRowKey == null) throw new ArgumentNullException(nameof(calculatedRowKey));
+			if (calculatedPartitionKeyFromParameter == null)
+				throw new ArgumentNullException(nameof(calculatedPartitionKeyFromParameter));
+			if (calculatedRowKeyFromParameter == null) throw new ArgumentNullException(nameof(calculatedRowKeyFromParameter));
+
+			_calculatedPartitionKey = calculatedPartitionKey;
+			_calculatedRowKey = calculatedRowKey;
+			_calculatedPartitionKeyFromParameter = calculatedPartitionKeyFromParameter;
+			_calculatedRowKeyFromParameter = calculatedRowKeyFromParameter;
+			_convertPartitionKey = convertPartitionKey;
+			_convertRowKey = convertRowKey;
+			_ignoredProperties = ignoredProperties;
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
+				retryWaitTimeInSeconds);
+
+			_useCalculatedKeys = true;
+			_partitionProperty = partitionProperty;
+			_rowProperty = rowProperty;
+
 		}
 
 		public void CreateTable()
@@ -273,70 +357,81 @@ namespace TableStorage.Abstractions.POCO
 			if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey));
 			if (rowKey == null) throw new ArgumentNullException(nameof(rowKey));
 
-			return GetRecord(partitionKey.ToString(), rowKey.ToString());
+			
+			return GetRecord(GetPartitionKeyString(partitionKey), GetRowKeyString(rowKey));
 		}
 
 		public IEnumerable<T> GetByPartitionKey(TPartitionKey partitionKey)
 		{
 			if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey));
 
-			return GetByPartitionKey(partitionKey.ToString());
+			return GetByPartitionKey(GetPartitionKeyString(partitionKey));
 		}
 
 		public PagedResult<T> GetByPartitionKeyPaged(TPartitionKey partitionKey, int pageSize = 100,
 			string continuationTokenJson = null)
 		{
 			if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey));
-			return GetByPartitionKeyPaged(partitionKey.ToString(), pageSize, continuationTokenJson);
+			return GetByPartitionKeyPaged(GetPartitionKeyString(partitionKey), pageSize, continuationTokenJson);
 		}
 
 		public IEnumerable<T> GetByRowKey(TRowKey rowKey)
 		{
 			if (rowKey == null) throw new ArgumentNullException(nameof(rowKey));
-			return GetByRowKey(rowKey.ToString());
+			return GetByRowKey(GetRowKeyString(rowKey));
 		}
 
 		public PagedResult<T> GetByRowKeyPaged(TRowKey rowKey, int pageSize = 100, string continuationTokenJson = null)
 		{
 			if (rowKey == null) throw new ArgumentNullException(nameof(rowKey));
-			return GetByRowKeyPaged(rowKey.ToString(), pageSize, continuationTokenJson);
+			return GetByRowKeyPaged(GetRowKeyString(rowKey), pageSize, continuationTokenJson);
 		}
 
 		public Task<T> GetRecordAsync(TPartitionKey partitionKey, TRowKey rowKey)
 		{
 			if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey));
 			if (rowKey == null) throw new ArgumentNullException(nameof(rowKey));
-			return GetRecordAsync(partitionKey.ToString(), rowKey.ToString());
+			return GetRecordAsync(GetPartitionKeyString(partitionKey), GetRowKeyString(rowKey));
 		}
 
 		public Task<IEnumerable<T>> GetByPartitionKeyAsync(TPartitionKey partitionKey)
 		{
 			if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey));
-			return GetByPartitionKeyAsync(partitionKey.ToString());
+			return GetByPartitionKeyAsync(GetPartitionKeyString(partitionKey));
 		}
 
 		public Task<PagedResult<T>> GetByPartitionKeyPagedAsync(TPartitionKey partitionKey, int pageSize = 100,
 			string continuationTokenJson = null)
 		{
 			if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey));
-			return GetByPartitionKeyPagedAsync(partitionKey.ToString(), pageSize, continuationTokenJson);
+			return GetByPartitionKeyPagedAsync(GetPartitionKeyString(partitionKey), pageSize, continuationTokenJson);
 		}
 
 		public Task<IEnumerable<T>> GetByRowKeyAsync(TRowKey rowKey)
 		{
 			if (rowKey == null) throw new ArgumentNullException(nameof(rowKey));
-			return GetByRowKeyAsync(rowKey.ToString());
+			return GetByRowKeyAsync(GetRowKeyString(rowKey));
 		}
 
 		public Task<PagedResult<T>> GetByRowKeyPagedAsync(TRowKey rowKey, int pageSize = 100,
 			string continuationTokenJson = null)
 		{
-			return GetByRowKeyPagedAsync(rowKey.ToString(), pageSize, continuationTokenJson);
+			return GetByRowKeyPagedAsync(GetRowKeyString(rowKey), pageSize, continuationTokenJson);
 		}
 
 		private DynamicTableEntity CreateEntity(T record)
 		{
-			var entity = record.ToTableEntity(_partitionProperty, _rowProperty, _ignoredProperties);
+			DynamicTableEntity entity;
+
+			if (_useCalculatedKeys)
+			{
+				entity = record.ToTableEntity(_calculatedPartitionKey(record), _calculatedRowKey(record), _ignoredProperties);
+			}
+			else
+			{
+				entity = record.ToTableEntity(_partitionProperty, _rowProperty, _ignoredProperties);
+			}
+
 			return entity;
 		}
 
@@ -348,7 +443,18 @@ namespace TableStorage.Abstractions.POCO
 
 		private T CreateRecord(DynamicTableEntity entity)
 		{
-			var record = entity.FromTableEntity<T, TPartitionKey, TRowKey>(_partitionProperty, _rowProperty);
+			T record;
+
+			if (_useCalculatedKeys)
+			{
+				record = entity.FromTableEntity<T, TPartitionKey, TRowKey>(_partitionProperty, _convertPartitionKey, _rowProperty,
+					_convertRowKey);
+			}
+			else
+			{
+				record = entity.FromTableEntity<T, TPartitionKey, TRowKey>(_partitionProperty, _rowProperty);
+			}
+
 			return record;
 		}
 
@@ -380,6 +486,30 @@ namespace TableStorage.Abstractions.POCO
 			var entity = CreateEntity(record);
 			entity.ETag = original.ETag;
 			return entity;
+		}
+
+		private string GetPartitionKeyString(TPartitionKey key)
+		{
+			if (_useCalculatedKeys)
+			{
+				return _calculatedPartitionKeyFromParameter(key);
+			}
+			else
+			{
+				return key.ToString();
+			}
+		}
+
+		private string GetRowKeyString(TRowKey key)
+		{
+			if (_useCalculatedKeys)
+			{
+				return _calculatedRowKeyFromParameter(key);
+			}
+			else
+			{
+				return key.ToString();
+			}
 		}
 	}
 }
