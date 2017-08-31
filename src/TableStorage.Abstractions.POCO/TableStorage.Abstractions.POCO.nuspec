@@ -10,8 +10,7 @@
     <projectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Builds on top of TableStorage.Abstractions (a repository wrapper over Azure Table Storage) such that objects to be serialized to and from Azure Table Storage are Plain Old CLR Objects (POCO) rather than TableEntities.</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
     <copyright>Copyright 2017</copyright>
-    <tags>Tag1 Tag2</tags>
+    <tags>table-storage azure-table-storage poco table-entities tableentity</tags>
   </metadata>
 </package>
