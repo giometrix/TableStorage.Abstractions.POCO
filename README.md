@@ -144,7 +144,7 @@ var employee = new Employee
 tableStore.Insert(employee);
 ```
 
-As always, we have 2 ways of querying the data.  I think I prefer the untyped way since it is more clear:
+As always, we have 2 ways of querying the data:
 
 ```csharp
 var record = tableStore.GetRecord("1", "user");
@@ -155,3 +155,7 @@ We can also get the record using the typed overload, though in this case the sec
 ```csharp
 record = tableStore.GetRecord(1, int.MinValue);
 ```
+
+Note that our table store was ```PocoTableStore<Employee, int, int>```, but that last generic could have been anything since it is thrown away.  So if you prefer, you can make it ```PocoTableStore<Employee, int, string>``` and then query like so: 
+```var record = tableStore.GetRecord(142, "user");```
+which is both clear and provides type safety.
