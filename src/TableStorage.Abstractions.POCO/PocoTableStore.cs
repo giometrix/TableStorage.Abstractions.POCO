@@ -480,7 +480,17 @@ namespace TableStorage.Abstractions.POCO
 
 		private DynamicTableEntity CreateEntityWithEtag(T record)
 		{
-			var dynamicEntity = record.ToTableEntity(_partitionProperty, _rowProperty);
+			DynamicTableEntity dynamicEntity;
+
+			if (_useCalculatedKeys)
+			{
+				dynamicEntity = record.ToTableEntity(_calculatedPartitionKey(record), _calculatedRowKey(record), _ignoredProperties);
+			}
+			else
+			{
+				dynamicEntity = record.ToTableEntity(_partitionProperty, _rowProperty, _ignoredProperties);
+			}
+			
 			var original = _tableStore.GetRecord(dynamicEntity.PartitionKey, dynamicEntity.RowKey);
 
 			var entity = CreateEntity(record);

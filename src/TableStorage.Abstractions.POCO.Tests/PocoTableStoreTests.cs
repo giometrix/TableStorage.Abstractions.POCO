@@ -783,6 +783,134 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			tableStore2.DeleteTable();
 		}
+
+
+		[TestMethod]
+		public void update_record_with_calculated_partition_key_using_date()
+		{
+			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
+			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
+
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+
+
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{anotherDate}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => $"{anotherDate}_{x}",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+
+			tableStore2.DeleteTable();
+			tableStore2.CreateTable();
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 142,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+			tableStore2.Insert(employee);
+
+			employee.Name = "XXX";
+			tableStore.Update(employee);
+
+			var record1 = tableStore.GetRecord(1, 142);
+			var record2 = tableStore2.GetRecord(1, 142);
+
+			Assert.IsNotNull(record1);
+			Assert.IsNotNull(record2);
+
+			Assert.AreEqual("XXX", record1.Name);
+			Assert.AreEqual("Mr. Jim CEO", record2.Name);
+			tableStore2.DeleteTable();
+		}
+
+
+		[TestMethod]
+		public void update_record_with_calculated_partition_key_using_date_using_wildcard_etag()
+		{
+			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
+			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
+
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+
+
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{anotherDate}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => $"{anotherDate}_{x}",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+
+			tableStore2.DeleteTable();
+			tableStore2.CreateTable();
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 142,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+			tableStore2.Insert(employee);
+
+			employee.Name = "XXX";
+			tableStore.UpdateUsingWildcardEtag(employee);
+
+			var record1 = tableStore.GetRecord(1, 142);
+			var record2 = tableStore2.GetRecord(1, 142);
+
+			Assert.IsNotNull(record1);
+			Assert.IsNotNull(record2);
+
+			Assert.AreEqual("XXX", record1.Name);
+			Assert.AreEqual("Mr. Jim CEO", record2.Name);
+			tableStore2.DeleteTable();
+		}
+
+
+		[TestMethod]
+		public void delete_record_with_calculated_partition_key_using_date()
+		{
+			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
+			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
+
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+
+
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 142,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+			
+			tableStore.Delete(employee);
+
+			Assert.AreEqual(3, tableStore.GetRecordCount());
+		
+		}
 		[TestCleanup]
 		public void Cleanup()
 		{
