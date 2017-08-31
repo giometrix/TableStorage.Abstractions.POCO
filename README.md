@@ -102,3 +102,56 @@ It's a little more complicated than I would have liked (I'm open to suggestions)
 ```calculatedPartitionKeyFromParameter```: how to build the calculated partition key from the given partition key.  In our case we would provide ```CompanyId``` and the output would be date + ```CompanyId```.
 
 ```calculatedRowFromParameter```: how to build the calculated row key from the given row key.  In our case we would provide ```Id``` and the output would be the stringified version.
+
+Whew.... that was a lot of work.  Was it worth it?  I sure think so, since it makes working with the records feel much more natural.  To insert a record you continue to use syntax such as the following:
+```csharp
+var employee = new Employee
+{
+	CompanyId = 1,
+	Id = 142,
+	Name = "Mr. Jim CEO",
+	Department = new Department { Id = 22, Name = "Executive" }
+};
+tableStore.Insert(employee);
+```
+
+Notice that you don't need to worry about constructing the partition key.  Similarly, to query, you continue to query using just the simple identifiers like so:
+```charp
+var record = tableStore.GetRecord(1, 142);
+```
+#### Fixed Keys
+Fixed keys are really just a specialization of calculated keys.  A scenario that you may run into sometimes is where you only need a single key, which is the case when you only query the data using point queries ("get by id").  In this scenario, you'll probably choose to supply a partition key and not a row key since in this case you'd get better throughput using partition keys in a high volume system (again, we are assuming a point-query-only scenario).
+
+Again, we will use a contrived example.  Here we have use ```Id``` as partition key , and we always use the word "user" for rowkey, since this will not be used.
+
+```charp
+tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: e => e.Id, rowProperty: null, calculatedPartitionKey: e => e.Id.ToString(), calculatedRowKey: e => "user",
+calculatedPartitionKeyFromParameter: x => x.ToString(),
+calculatedRowKeyFromParameter: x => "user",
+convertPartitionKey: int.Parse, convertRowKey: null);
+```	
+
+Inserting the data remains the same:
+```csharp
+var employee = new Employee
+{
+	Id = 1,
+	Name = "Mr. Jim CEO",
+	Department = new Department { Id = 22, Name = "Executive" }
+};
+
+tableStore.Insert(employee);
+```
+
+As always, we have 2 ways of querying the data.  I think I prefer the untyped way since it is more clear:
+
+```csharp
+var record = tableStore.GetRecord("1", "user");
+```
+
+We can also get the record using the typed overload, though in this case the second parameter is thrown away since there is no row key.  I prefer to use ```int.Min``` to show that this value is thrown away.
+
+```csharp
+record = tableStore.GetRecord(1, int.MinValue);
+```
