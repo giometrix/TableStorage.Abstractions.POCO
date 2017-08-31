@@ -32,6 +32,24 @@ namespace TableStorage.Abstractions.POCO
 		private readonly TableStore<DynamicTableEntity> _tableStore;
 		private readonly bool _useCalculatedKeys;
 
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
+		/// </summary>
+		/// <param name="tableName">Name of the azure storage table.</param>
+		/// <param name="storageConnectionString">The azure storage connection string.</param>
+		/// <param name="partitionProperty">The property to be used as a partition key.</param>
+		/// <param name="rowProperty">The property to be used as a row key.</param>
+		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
+		/// <exception cref="ArgumentNullException">
+		/// tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// partitionProperty
+		/// or
+		/// rowProperty
+		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString, Expression<Func<T, object>> partitionProperty,
 			Expression<Func<T, object>> rowProperty, params Expression<Func<T, object>>[] ignoredProperties)
 		{
@@ -52,7 +70,25 @@ namespace TableStorage.Abstractions.POCO
 		}
 
 
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
+		/// </summary>
+		/// <param name="tableName">Name of the azure storage table.</param>
+		/// <param name="storageConnectionString">The azure storage connection string.</param>
+		/// <param name="retries">The number of retries.</param>
+		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
+		/// <param name="partitionProperty">The property to be used as a partition key.</param>
+		/// <param name="rowProperty">The property to be used as a row key.</param>
+		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
+		/// <exception cref="ArgumentNullException">
+		/// tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// partitionProperty
+		/// or
+		/// rowProperty
+		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
 			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
 			params Expression<Func<T, object>>[] ignoredProperties)
@@ -73,7 +109,33 @@ namespace TableStorage.Abstractions.POCO
 			_calculatedRowKey = null;
 		}
 
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
+		/// </summary>
+		/// <param name="tableName">Name of the azure storage table.</param>
+		/// <param name="storageConnectionString">The azure storage connection string.</param>
+		/// <param name="partitionProperty">The property to be used as a partition key.</param>
+		/// <param name="rowProperty">The property to be used as a row key.</param>
+		/// <param name="calculatedPartitionKey">Function to calculate the partition key from the object.</param>
+		/// <param name="calculatedRowKey">Function to calculate the row key from the object.</param>
+		/// <param name="calculatedPartitionKeyFromParameter">Function to calculate the partition key from the provided parameter (of type TPartitionKey)</param>
+		/// <param name="calculatedRowKeyFromParameter">Function to calculate the row key from the provided parameter (of type TRowKey)</param>
+		/// <param name="convertPartitionKey">Function to convert the partition key to partitionProperty <see cref="partitionProperty"/></param>
+		/// <param name="convertRowKey">Function to convert the partition key to partitionProperty <see cref="rowProperty"/></param>
+		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
+		/// <exception cref="ArgumentNullException">
+		/// tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// calculatedPartitionKey
+		/// or
+		/// calculatedRowKey
+		/// or
+		/// calculatedPartitionKeyFromParameter
+		/// or
+		/// calculatedRowKeyFromParameter
+		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString,
 			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
 			Func<T, string> calculatedPartitionKey, Func<T, string> calculatedRowKey,
@@ -104,7 +166,35 @@ namespace TableStorage.Abstractions.POCO
 			_rowProperty = rowProperty;
 
 		}
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
+		/// </summary>
+		/// <param name="tableName">Name of the azure storage table.</param>
+		/// <param name="storageConnectionString">The azure storage connection string.</param>
+		/// <param name="retries">The number of retries.</param>
+		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
+		/// <param name="partitionProperty">The property to be used as a partition key.</param>
+		/// <param name="rowProperty">The property to be used as a row key.</param>
+		/// <param name="calculatedPartitionKey">Function to calculate the partition key from the object.</param>
+		/// <param name="calculatedRowKey">Function to calculate the row key from the object.</param>
+		/// <param name="calculatedPartitionKeyFromParameter">Function to calculate the partition key from the provided parameter (of type TPartitionKey)</param>
+		/// <param name="calculatedRowKeyFromParameter">Function to calculate the row key from the provided parameter (of type TRowKey)</param>
+		/// <param name="convertPartitionKey">Function to convert the partition key to partitionProperty <see cref="partitionProperty"/></param>
+		/// <param name="convertRowKey">Function to convert the partition key to partitionProperty <see cref="rowProperty"/></param>
+		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
+		/// <exception cref="ArgumentNullException">
+		/// tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// calculatedPartitionKey
+		/// or
+		/// calculatedRowKey
+		/// or
+		/// calculatedPartitionKeyFromParameter
+		/// or
+		/// calculatedRowKeyFromParameter
+		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
 			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
 			Func<T, string> calculatedPartitionKey, Func<T, string> calculatedRowKey,
