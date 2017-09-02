@@ -298,3 +298,5 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+/src/TableStorage.Abstractions.POCO/pack.bat
+/src/TableStorage.Abstractions.POCO/nuget.exe

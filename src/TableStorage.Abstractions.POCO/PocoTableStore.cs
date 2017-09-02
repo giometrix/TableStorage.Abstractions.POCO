@@ -533,6 +533,9 @@ namespace TableStorage.Abstractions.POCO
 
 		private T CreateRecord(DynamicTableEntity entity)
 		{
+			if (entity == null)
+				return default(T);
+
 			T record;
 
 			if (_useCalculatedKeys)
@@ -584,7 +587,7 @@ namespace TableStorage.Abstractions.POCO
 			var original = _tableStore.GetRecord(dynamicEntity.PartitionKey, dynamicEntity.RowKey);
 
 			var entity = CreateEntity(record);
-			entity.ETag = original.ETag;
+			entity.ETag = original?.ETag ?? "*";
 			return entity;
 		}
 

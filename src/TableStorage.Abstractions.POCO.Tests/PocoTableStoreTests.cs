@@ -140,6 +140,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void get_record_with_no_results()
+		{
+			var record = tableStore.GetRecord("100", "10");
+			Assert.IsNull(record);
+		}
+
+		[TestMethod]
 		public async Task get_record_async()
 		{
 			var record = await tableStore.GetRecordAsync("1", "1");
@@ -354,6 +361,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var employee = new Employee {CompanyId = 1, Id = 1};
 			tableStore.Delete(employee);
 			Assert.AreEqual(2, tableStore.GetRecordCount());
+		}
+
+
+		[TestMethod]
+		[ExpectedException(typeof(Microsoft.WindowsAzure.Storage.StorageException))]
+		public void delete_record_that_doesnt_exist()
+		{
+			var employee = new Employee { CompanyId = 11, Id = 100 };
+			tableStore.Delete(employee);
+			
 		}
 
 
