@@ -159,3 +159,14 @@ record = tableStore.GetRecord(1, int.MinValue);
 Note that our table store was ```PocoTableStore<Employee, int, int>```, but that last generic could have been anything since it is thrown away.  So if you prefer, you can make it ```PocoTableStore<Employee, int, string>``` and then query like so: 
 ```var record = tableStore.GetRecord(142, "user");```
 which is both clear and provides type safety.
+
+### Further Filtering (Beyond Parition & Row Keys)
+New to v1.2, we now include the ability to filter on properties outside of partition and row keys.  Please note that this filtering occurs outside of table storage, so please consider using at least the partition key for best results.
+
+Example:
+
+```charp
+var records = tableStore.GetByPartitionKey(1, e=>e.Name == "Jim CEO");
+```
+
+In this example we get all records in parition "1" where the name is "Jim CEO".
