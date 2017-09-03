@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.Table;
-
+using System.Reactive;
 namespace TableStorage.Abstractions.POCO.Tests
 {
 	[TestClass]
@@ -176,6 +176,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void get_records_by_partition_key_and_filter()
+		{
+			var records = tableStore.GetByPartitionKey("1", e=>e.Name == "Jim CEO");
+			Assert.AreEqual(1, records.Count());
+		}
+
+		[TestMethod]
 		public void get_records_by_partition_key_typed()
 		{
 			var records = tableStore.GetByPartitionKey(1);
@@ -183,10 +190,31 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void get_records_by_partition_key_and_filter_typed()
+		{
+			var records = tableStore.GetByPartitionKey(1, e=>e.Name == "Jim CEO");
+			Assert.AreEqual(1, records.Count());
+		}
+
+		[TestMethod]
 		public async Task get_records_by_partition_key_async()
 		{
 			var records = await tableStore.GetByPartitionKeyAsync("1");
 			Assert.AreEqual(2, records.Count());
+		}
+
+		[TestMethod]
+		public async Task get_records_by_partition_key_and_filter_async()
+		{
+			var records = await tableStore.GetByPartitionKeyAsync("1", e=>e.Name == "Jim CEO");
+			Assert.AreEqual(1, records.Count());
+		}
+
+		[TestMethod]
+		public async Task get_records_by_partition_key_and_filter_typed_async()
+		{
+			var records = await tableStore.GetByPartitionKeyAsync(1, e => e.Name == "Jim CEO");
+			Assert.AreEqual(1, records.Count());
 		}
 
 		[TestMethod]
@@ -204,6 +232,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void get_records_by_partition_key_and_filter_paged()
+		{
+			var records = tableStore.GetByPartitionKeyPaged("1", e=>e.Name == "Jim CEO", 1);
+			Assert.AreEqual(1, records.Items.Count());
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = tableStore.GetByPartitionKeyPaged("1", e => e.Name == "Jim CEO", 1, token);
+
+			
+			Assert.AreEqual(0, records.Items.Count); 
+		}
+
+
+		[TestMethod]
 		public void get_records_by_partition_key_paged_typed()
 		{
 			var records = tableStore.GetByPartitionKeyPaged(1, 1);
@@ -212,10 +256,55 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 
 		[TestMethod]
+		public void get_records_by_partition_key_and_filter_paged_typed()
+		{
+			var records = tableStore.GetByPartitionKeyPaged(1, e => e.Name == "Jim CEO", 1);
+			Assert.AreEqual(1, records.Items.Count());
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = tableStore.GetByPartitionKeyPaged(1, e => e.Name == "Jim CEO", 1, token);
+
+
+			Assert.AreEqual(0, records.Items.Count);
+		}
+
+		[TestMethod]
 		public async Task get_records_by_partition_key_paged_async()
 		{
 			var records = await tableStore.GetByPartitionKeyPagedAsync("1", 1);
 			Assert.AreEqual(1, records.Items.Count());
+		}
+
+		[TestMethod]
+		public async Task get_records_by_partition_key_paged_and_filtered_async()
+		{
+			var records = await tableStore.GetByPartitionKeyPagedAsync("1", e => e.Name == "Jim CEO", 1);
+			Assert.AreEqual(1, records.Items.Count());
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = await tableStore.GetByPartitionKeyPagedAsync("1", e => e.Name == "Jim CEO", 1, token);
+
+
+			Assert.AreEqual(0, records.Items.Count);
+		}
+
+		[TestMethod]
+		public async Task get_records_by_partition_key_paged_and_filtered_async_typed()
+		{
+			var records = await tableStore.GetByPartitionKeyPagedAsync(1, e => e.Name == "Jim CEO", 1);
+			Assert.AreEqual(1, records.Items.Count());
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = await tableStore.GetByPartitionKeyPagedAsync(1, e => e.Name == "Jim CEO", 1, token);
+
+
+			Assert.AreEqual(0, records.Items.Count);
 		}
 
 		[TestMethod]
@@ -233,10 +322,25 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void get_records_by_row_key_and_filter()
+		{
+			var records = tableStore.GetByRowKey("1", e=>e.Name.Contains("Jim"));
+
+			Assert.AreEqual(1, records.Count());
+		}
+
+		[TestMethod]
 		public void get_records_by_row_key_typed()
 		{
 			var records = tableStore.GetByRowKey(1);
 			Assert.AreEqual(2, records.Count());
+		}
+
+		[TestMethod]
+		public void get_records_by_row_key_and_filter_typed()
+		{
+			var records = tableStore.GetByRowKey(1, e=>e.Name.Contains("Jim"));
+			Assert.AreEqual(1, records.Count());
 		}
 
 		[TestMethod]
@@ -246,11 +350,49 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, records.Items.Count());
 		}
 
+
 		[TestMethod]
 		public void get_records_by_row_key_paged_typed()
 		{
 			var records = tableStore.GetByRowKeyPaged(1, 1);
 			Assert.AreEqual(1, records.Items.Count());
+		}
+
+		[TestMethod]
+		public void get_records_by_row_key_and_filtered_paged()
+		{
+			var records = tableStore.GetByRowKeyPaged("1", e=>e.Name.Contains("Jim"), 1);
+
+			Assert.AreEqual(1, records.Items.Count());
+
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = tableStore.GetByPartitionKeyPaged("1", e => e.Name.Contains("Jim"), 1, token);
+
+
+			Assert.AreEqual(0, records.Items.Count);
+
+		}
+
+
+		[TestMethod]
+		public void get_records_by_row_key_and_filtered_paged_typed()
+		{
+			var records = tableStore.GetByRowKeyPaged(1, e => e.Name.Contains("Jim"), 1);
+
+			Assert.AreEqual(1, records.Items.Count());
+
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = tableStore.GetByPartitionKeyPaged(1, e => e.Name.Contains("Jim"), 1, token);
+
+
+			Assert.AreEqual(0, records.Items.Count);
+
 		}
 
 		[TestMethod]
@@ -261,10 +403,92 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public async Task get_records_by_row_key_and_filter_async()
+		{
+			var records = await tableStore.GetByRowKeyAsync("1", e=>e.Name.Contains("Jim"));
+			Assert.AreEqual(1, records.Count());
+		}
+
+
+		[TestMethod]
+		public async Task get_records_by_row_key_and_filter_typed_async()
+		{
+			var records = await tableStore.GetByRowKeyAsync(1, e => e.Name.Contains("Jim"));
+			Assert.AreEqual(1, records.Count());
+		}
+
+		[TestMethod]
 		public async Task get_records_by_row_key_typed_async()
 		{
 			var records = await tableStore.GetByRowKeyAsync(1);
 			Assert.AreEqual(2, records.Count());
+		}
+
+		[TestMethod]
+		public void get_records_by_filter()
+		{
+			var records = tableStore.GetRecordsByFilter(x => x.Name == "Jim CEO");
+			Assert.AreEqual(1, records.Count());
+		}
+
+		[TestMethod]
+		public void get_records_by_filter_no_results()
+		{
+			var records = tableStore.GetRecordsByFilter(x => x.Name == "Jim CEOxxx");
+			Assert.AreEqual(0, records.Count());
+		}
+
+
+		[TestMethod]
+		public void get_records_by_filter_paged()
+		{
+			var records = tableStore.GetRecordsByFilter(x => x.Name.Length > 0,0,1);
+			Assert.AreEqual(1, records.Count());
+		}
+
+		[TestMethod]
+		public void get_records_observable()
+		{
+			var observer = tableStore.GetAllRecordsObservable();
+			int count = 0;
+			observer.Subscribe(x =>
+			{
+				count++;
+			});
+
+			Assert.AreEqual(3, count);
+
+
+		}
+
+		[TestMethod]
+		public void get_records_filtered_observable()
+		{
+			var observer = tableStore.GetRecordsByFilterObservable(e=>e.Name.Contains("CEO"), 0, 10);
+			int count = 0;
+			observer.Subscribe(x =>
+			{
+				count++;
+			});
+
+			Assert.AreEqual(2, count);
+
+
+		}
+
+		[TestMethod]
+		public void get_records_filtered_observable_paged()
+		{
+			var observer = tableStore.GetRecordsByFilterObservable(e => e.Name.Contains("CEO"), 0, 1);
+			int count = 0;
+			observer.Subscribe(x =>
+			{
+				count++;
+			});
+
+			Assert.AreEqual(1, count);
+
+
 		}
 
 		[TestMethod]
@@ -273,6 +497,45 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var records = await tableStore.GetByRowKeyPagedAsync("1", 1);
 			Assert.AreEqual(1, records.Items.Count());
 		}
+
+
+		[TestMethod]
+		public async Task get_records_by_row_key_and_filtered_paged_async()
+		{
+			var records = await tableStore.GetByRowKeyPagedAsync("1", e => e.Name.Contains("Jim"), 1);
+
+			Assert.AreEqual(1, records.Items.Count());
+
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = await tableStore.GetByPartitionKeyPagedAsync("1", e => e.Name.Contains("Jim"), 1, token);
+
+
+			Assert.AreEqual(0, records.Items.Count);
+
+		}
+
+		[TestMethod]
+		public async Task get_records_by_row_key_and_filtered_paged_async_typed()
+		{
+			var records = await tableStore.GetByRowKeyPagedAsync(1, e => e.Name.Contains("Jim"), 1);
+
+			Assert.AreEqual(1, records.Items.Count());
+
+
+			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
+			//isFinalPage ends up being false because filtering was done outside of TS.  Sucks, but it is what it is for now.
+			var token = records.ContinuationToken;
+			records = await tableStore.GetByPartitionKeyPagedAsync(1, e => e.Name.Contains("Jim"), 1, token);
+
+
+			Assert.AreEqual(0, records.Items.Count);
+
+		}
+
+
 
 		[TestMethod]
 		public async Task get_records_by_row_key_paged_typed_async()
