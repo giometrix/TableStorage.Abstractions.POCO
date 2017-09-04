@@ -19,21 +19,10 @@ namespace TableStorage.Abstractions.POCO
 		private static readonly ConcurrentDictionary<Type, ConstructorInfo> _pagedResultConstructors =
 			new ConcurrentDictionary<Type, ConstructorInfo>();
 
-		private readonly Func<T, string> _calculatedPartitionKey;
-		private readonly Func<TPartitionKey, string> _calculatedPartitionKeyFromParameter;
-		private readonly Func<T, string> _calculatedRowKey;
-		private readonly Func<TRowKey, string> _calculatedRowKeyFromParameter;
 
-		private readonly Func<string, TPartitionKey> _convertPartitionKey;
-		private readonly Func<string, TRowKey> _convertRowKey;
-
-
-		private readonly Expression<Func<T, object>>[] _ignoredProperties;
-
-		private readonly Expression<Func<T, object>> _partitionProperty;
-		private readonly Expression<Func<T, object>> _rowProperty;
+		private readonly ITableConverter<T, TPartitionKey, TRowKey> _tableConverter;
 		private readonly TableStore<DynamicTableEntity> _tableStore;
-		private readonly bool _useCalculatedKeys;
+		
 
 
 		/// <summary>
@@ -62,14 +51,10 @@ namespace TableStorage.Abstractions.POCO
 			if (rowProperty == null) throw new ArgumentNullException(nameof(rowProperty));
 
 
-			_partitionProperty = partitionProperty;
-			_rowProperty = rowProperty;
-			_ignoredProperties = ignoredProperties;
+			_tableConverter = new SimpleTableConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
+			
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
 
-			_useCalculatedKeys = false;
-			_calculatedPartitionKey = null;
-			_calculatedRowKey = null;
 		}
 
 
@@ -101,154 +86,96 @@ namespace TableStorage.Abstractions.POCO
 			if (partitionProperty == null) throw new ArgumentNullException(nameof(partitionProperty));
 			if (rowProperty == null) throw new ArgumentNullException(nameof(rowProperty));
 
-			_partitionProperty = partitionProperty;
-			_rowProperty = rowProperty;
-			_ignoredProperties = ignoredProperties;
+			_tableConverter = new SimpleTableConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
+
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
 				retryWaitTimeInSeconds);
 
-			_useCalculatedKeys = false;
-			_calculatedPartitionKey = null;
-			_calculatedRowKey = null;
 		}
 
 		/// <summary>
-		///     Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
 		/// </summary>
-		/// <param name="tableName">Name of the azure storage table.</param>
-		/// <param name="storageConnectionString">The azure storage connection string.</param>
-		/// <param name="partitionProperty">The property to be used as a partition key.</param>
-		/// <param name="rowProperty">The property to be used as a row key.</param>
-		/// <param name="calculatedPartitionKey">Function to calculate the partition key from the object.</param>
-		/// <param name="calculatedRowKey">Function to calculate the row key from the object.</param>
-		/// <param name="calculatedPartitionKeyFromParameter">
-		///     Function to calculate the partition key from the provided parameter
-		///     (of type TPartitionKey)
-		/// </param>
-		/// <param name="calculatedRowKeyFromParameter">
-		///     Function to calculate the row key from the provided parameter (of type
-		///     TRowKey)
-		/// </param>
-		/// <param name="convertPartitionKey">
-		///     Function to convert the partition key to partitionProperty
-		///     <see cref="partitionProperty" />
-		/// </param>
-		/// <param name="convertRowKey">
-		///     Function to convert the partition key to partitionProperty <see cref="rowProperty" />
-		/// </param>
-		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
-		/// <exception cref="ArgumentNullException">
-		///     tableName
-		///     or
-		///     storageConnectionString
-		///     or
-		///     calculatedPartitionKey
-		///     or
-		///     calculatedRowKey
-		///     or
-		///     calculatedPartitionKeyFromParameter
-		///     or
-		///     calculatedRowKeyFromParameter
-		/// </exception>
-		public PocoTableStore(string tableName, string storageConnectionString,
-			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
-			Func<T, string> calculatedPartitionKey, Func<T, string> calculatedRowKey,
-			Func<TPartitionKey, string> calculatedPartitionKeyFromParameter,
-			Func<TRowKey, string> calculatedRowKeyFromParameter,
-			Func<string, TPartitionKey> convertPartitionKey, Func<string, TRowKey> convertRowKey,
-			params Expression<Func<T, object>>[] ignoredProperties)
-		{
-			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
-			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (calculatedPartitionKey == null) throw new ArgumentNullException(nameof(calculatedPartitionKey));
-			if (calculatedRowKey == null) throw new ArgumentNullException(nameof(calculatedRowKey));
-			if (calculatedPartitionKeyFromParameter == null)
-				throw new ArgumentNullException(nameof(calculatedPartitionKeyFromParameter));
-			if (calculatedRowKeyFromParameter == null) throw new ArgumentNullException(nameof(calculatedRowKeyFromParameter));
-
-			_calculatedPartitionKey = calculatedPartitionKey;
-			_calculatedRowKey = calculatedRowKey;
-			_calculatedPartitionKeyFromParameter = calculatedPartitionKeyFromParameter;
-			_calculatedRowKeyFromParameter = calculatedRowKeyFromParameter;
-			_convertPartitionKey = convertPartitionKey;
-			_convertRowKey = convertRowKey;
-			_ignoredProperties = ignoredProperties;
-			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
-
-			_useCalculatedKeys = true;
-			_partitionProperty = partitionProperty;
-			_rowProperty = rowProperty;
-		}
-
-		/// <summary>
-		///     Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
-		/// </summary>
-		/// <param name="tableName">Name of the azure storage table.</param>
-		/// <param name="storageConnectionString">The azure storage connection string.</param>
-		/// <param name="retries">The number of retries.</param>
+		/// <param name="tableName">Name of the table.</param>
+		/// <param name="storageConnectionString">The storage connection string.</param>
+		/// <param name="retries">The retries.</param>
 		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
-		/// <param name="partitionProperty">The property to be used as a partition key.</param>
-		/// <param name="rowProperty">The property to be used as a row key.</param>
-		/// <param name="calculatedPartitionKey">Function to calculate the partition key from the object.</param>
-		/// <param name="calculatedRowKey">Function to calculate the row key from the object.</param>
-		/// <param name="calculatedPartitionKeyFromParameter">
-		///     Function to calculate the partition key from the provided parameter
-		///     (of type TPartitionKey)
-		/// </param>
-		/// <param name="calculatedRowKeyFromParameter">
-		///     Function to calculate the row key from the provided parameter (of type
-		///     TRowKey)
-		/// </param>
-		/// <param name="convertPartitionKey">
-		///     Function to convert the partition key to partitionProperty
-		///     <see cref="partitionProperty" />
-		/// </param>
-		/// <param name="convertRowKey">
-		///     Function to convert the partition key to partitionProperty <see cref="rowProperty" />
-		/// </param>
-		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
+		/// <param name="tableConverter">The table converter.</param>
 		/// <exception cref="ArgumentNullException">
-		///     tableName
-		///     or
-		///     storageConnectionString
-		///     or
-		///     calculatedPartitionKey
-		///     or
-		///     calculatedRowKey
-		///     or
-		///     calculatedPartitionKeyFromParameter
-		///     or
-		///     calculatedRowKeyFromParameter
+		/// tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// tableConverter
 		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
-			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
-			Func<T, string> calculatedPartitionKey, Func<T, string> calculatedRowKey,
-			Func<TPartitionKey, string> calculatedPartitionKeyFromParameter,
-			Func<TRowKey, string> calculatedRowKeyFromParameter,
-			Func<string, TPartitionKey> convertPartitionKey, Func<string, TRowKey> convertRowKey,
-			params Expression<Func<T, object>>[] ignoredProperties)
+			SimpleTableConverter<T,TPartitionKey,TRowKey> tableConverter)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (calculatedPartitionKey == null) throw new ArgumentNullException(nameof(calculatedPartitionKey));
-			if (calculatedRowKey == null) throw new ArgumentNullException(nameof(calculatedRowKey));
-			if (calculatedPartitionKeyFromParameter == null)
-				throw new ArgumentNullException(nameof(calculatedPartitionKeyFromParameter));
-			if (calculatedRowKeyFromParameter == null) throw new ArgumentNullException(nameof(calculatedRowKeyFromParameter));
+			if (tableConverter == null) throw new ArgumentNullException(nameof(tableConverter));
 
-			_calculatedPartitionKey = calculatedPartitionKey;
-			_calculatedRowKey = calculatedRowKey;
-			_calculatedPartitionKeyFromParameter = calculatedPartitionKeyFromParameter;
-			_calculatedRowKeyFromParameter = calculatedRowKeyFromParameter;
-			_convertPartitionKey = convertPartitionKey;
-			_convertRowKey = convertRowKey;
-			_ignoredProperties = ignoredProperties;
+
+			_tableConverter = tableConverter;
+
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
 				retryWaitTimeInSeconds);
 
-			_useCalculatedKeys = true;
-			_partitionProperty = partitionProperty;
-			_rowProperty = rowProperty;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
+		/// </summary>
+		/// <param name="tableName">Name of the table.</param>
+		/// <param name="storageConnectionString">The storage connection string.</param>
+		/// <param name="tableConverter">The table converter.</param>
+		/// <exception cref="ArgumentNullException">
+		/// tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// tableConverter
+		/// </exception>
+		public PocoTableStore(string tableName, string storageConnectionString,
+			CalculatedKeysTableConverter<T,TPartitionKey,TRowKey> tableConverter)
+		{
+			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
+			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
+			if (tableConverter == null) throw new ArgumentNullException(nameof(tableConverter));
+
+			_tableConverter = tableConverter;
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
+
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
+		/// </summary>
+		/// <param name="tableName">Name of the table.</param>
+		/// <param name="storageConnectionString">The storage connection string.</param>
+		/// <param name="retries">The retries.</param>
+		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
+		/// <param name="tableConverter">The table converter.</param>
+		/// <exception cref="ArgumentNullException">
+		/// tableName
+		/// or
+		/// storageConnectionString
+		/// </exception>
+		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
+			CalculatedKeysTableConverter<T, TPartitionKey, TRowKey> tableConverter)
+		{
+			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
+			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
+			if (tableConverter == null)
+			{
+				throw new ArgumentNullException(nameof(tableConverter));
+			}
+
+			_tableConverter = tableConverter;
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
+				retryWaitTimeInSeconds);
+
+			
 		}
 
 		/// <summary>
@@ -1085,14 +1012,7 @@ namespace TableStorage.Abstractions.POCO
 
 		private DynamicTableEntity CreateEntity(T record)
 		{
-			DynamicTableEntity entity;
-
-			if (_useCalculatedKeys)
-				entity = record.ToTableEntity(_calculatedPartitionKey(record), _calculatedRowKey(record), _ignoredProperties);
-			else
-				entity = record.ToTableEntity(_partitionProperty, _rowProperty, _ignoredProperties);
-
-			return entity;
+			return _tableConverter.ToEntity(record);
 		}
 
 		private IEnumerable<DynamicTableEntity> CreateEntities(IEnumerable<T> records)
@@ -1106,15 +1026,8 @@ namespace TableStorage.Abstractions.POCO
 			if (entity == null)
 				return default(T);
 
-			T record;
+			return _tableConverter.FromEntity(entity);
 
-			if (_useCalculatedKeys)
-				record = entity.FromTableEntity(_partitionProperty, _convertPartitionKey, _rowProperty,
-					_convertRowKey);
-			else
-				record = entity.FromTableEntity<T, TPartitionKey, TRowKey>(_partitionProperty, _rowProperty);
-
-			return record;
 		}
 
 		private IEnumerable<T> CreateRecords(IEnumerable<DynamicTableEntity> entities)
@@ -1144,13 +1057,7 @@ namespace TableStorage.Abstractions.POCO
 
 		private DynamicTableEntity CreateEntityWithEtag(T record)
 		{
-			DynamicTableEntity dynamicEntity;
-
-			if (_useCalculatedKeys)
-				dynamicEntity = record.ToTableEntity(_calculatedPartitionKey(record), _calculatedRowKey(record),
-					_ignoredProperties);
-			else
-				dynamicEntity = record.ToTableEntity(_partitionProperty, _rowProperty, _ignoredProperties);
+			var dynamicEntity = _tableConverter.ToEntity(record);
 
 			var original = _tableStore.GetRecord(dynamicEntity.PartitionKey, dynamicEntity.RowKey);
 
@@ -1161,16 +1068,12 @@ namespace TableStorage.Abstractions.POCO
 
 		private string GetPartitionKeyString(TPartitionKey key)
 		{
-			if (_useCalculatedKeys)
-				return _calculatedPartitionKeyFromParameter(key);
-			return key.ToString();
+			return _tableConverter.PartitionKey(key);
 		}
 
 		private string GetRowKeyString(TRowKey key)
 		{
-			if (_useCalculatedKeys)
-				return _calculatedRowKeyFromParameter(key);
-			return key.ToString();
+			return _tableConverter.RowKey(key);
 		}
 	}
 }

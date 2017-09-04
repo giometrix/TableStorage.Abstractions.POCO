@@ -88,6 +88,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CalculatedKeysTableConverter.cs" />
+    <Compile Include="FixedKeyMapper.cs" />
+    <Compile Include="KeyMapper.cs" />
+    <Compile Include="SimpleTableConverter.cs" />
+    <Compile Include="ITableConverter.cs" />
     <Compile Include="KeyGenerator.cs" />
     <Compile Include="PocoTableStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

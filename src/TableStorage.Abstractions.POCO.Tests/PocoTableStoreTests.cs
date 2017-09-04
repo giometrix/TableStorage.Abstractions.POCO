@@ -662,15 +662,17 @@ namespace TableStorage.Abstractions.POCO.Tests
 			await tableStore.DeleteUsingWildcardEtagAsync(employee);
 			Assert.AreEqual(2, tableStore.GetRecordCount());
 		}
-
+		
 		[TestMethod]
 		public void insert_record_with_fixed_partition_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", 
-				partitionProperty: null, rowProperty: e=>e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e=>e.Id.ToString(), 
-				calculatedPartitionKeyFromParameter: x=>null,
-				calculatedRowKeyFromParameter:x=>x.ToString(),
-				convertPartitionKey: null, convertRowKey: int.Parse );
+			var pKeyMapper = new FixedKeyMapper<Employee, int>("SomeString");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",  tableConverter);
 
 			var employee = new Employee
 			{
@@ -689,15 +691,17 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
 
 		}
-
+		
 		[TestMethod]
 		public void get_record_with_fixed_partition_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => "SomeString",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: e=>0, convertRowKey: int.Parse);
+			var pKeyMapper = new FixedKeyMapper<Employee, int>("SomeString");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 			tableStore.DeleteTable();
 			tableStore.CreateTable();
 			var employee = new Employee
@@ -712,15 +716,17 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var record = tableStore.GetRecord("SomeString", "1");
 			Assert.AreEqual(1, record.Id);
 		}
-
+		
 		[TestMethod]
 		public void get_record_with_fixed_partition_key_typed()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => "SomeString",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: e => 0, convertRowKey: int.Parse);
+			var pKeyMapper = new FixedKeyMapper<Employee, int>("SomeString");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 			var employee = new Employee
 			{
@@ -739,11 +745,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void insert_record_with_calculated_partition_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e=>e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString_" + e.CompanyId, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => "SomeString_"+x,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk=>int.Parse(pk.Substring("SomeString_".Length)), convertRowKey: int.Parse);
+
+			var pKeyMapper = new KeyMapper<Employee, int>(e=>"SomeString_"+e.CompanyId, pk => int.Parse(pk.Substring("SomeString_".Length)), e=>e.CompanyId, id=>"SomeString_"+id);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
+
 
 			var employee = new Employee
 			{
@@ -767,11 +778,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_record_with_calculated_partition_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e=>e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString_" + e.CompanyId, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => "SomeString_" + x,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("SomeString_".Length)), convertRowKey: int.Parse);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => "SomeString_" + e.CompanyId, pk => int.Parse(pk.Substring("SomeString_".Length)), e => e.CompanyId, id => "SomeString_" + id);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
 
 			var employee = new Employee
 			{
@@ -794,11 +808,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_record_with_calculated_partition_key_typed()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString_" + e.CompanyId, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => "SomeString_" + x,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("SomeString_".Length)), convertRowKey: int.Parse);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => "SomeString_" + e.CompanyId, pk => int.Parse(pk.Substring("SomeString_".Length)), e => e.CompanyId, id => "SomeString_" + id);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
 
 			var employee = new Employee
 			{
@@ -821,11 +838,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void insert_record_with_fixed_row_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e=>e.CompanyId, rowProperty: null, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord",
-				calculatedPartitionKeyFromParameter: x => x.ToString(),
-				calculatedRowKeyFromParameter: x => "UserRecord",
-				convertPartitionKey: int.Parse, convertRowKey: null);
+
+			var pKeyMapper = new KeyMapper<Employee, int>(e =>e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id =>id.ToString());
+			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
 
 			var employee = new Employee
 			{
@@ -849,11 +869,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_record_with_fixed_row_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: null, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord",
-				calculatedPartitionKeyFromParameter: x => x.ToString(),
-				calculatedRowKeyFromParameter: x => "UserRecord",
-				convertPartitionKey: int.Parse, convertRowKey: null);
+
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
+			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 			var employee = new Employee
 			{
@@ -872,15 +894,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 		}
 
-
+		
 		[TestMethod]
 		public void get_record_with_fixed_row_key_typed()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: null, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord",
-				calculatedPartitionKeyFromParameter: x => x.ToString(),
-				calculatedRowKeyFromParameter: x => "UserRecord",
-				convertPartitionKey: int.Parse, convertRowKey: null);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
+			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 			var employee = new Employee
 			{
@@ -903,11 +926,15 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void insert_record_with_calculated_row_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e=>e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord_" + e.Id,
-				calculatedPartitionKeyFromParameter: x => x.ToString(),
-				calculatedRowKeyFromParameter: x => "UserRecord_" + x,
-				convertPartitionKey: int.Parse, convertRowKey: rk=>int.Parse(rk.Substring("UserRecord_".Length)));
+
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
+			var rKeyMapper = new KeyMapper<Employee, int>(e=>"UserRecord_" + e.Id, id=> int.Parse(id.Substring("UserRecord_".Length)), e=>e.Id, id=>"UserRecord_" + id);
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
+
 
 			var employee = new Employee
 			{
@@ -931,11 +958,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_record_with_calculated_row_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord_" + e.Id,
-				calculatedPartitionKeyFromParameter: x => x.ToString(),
-				calculatedRowKeyFromParameter: x => "UserRecord_" + x,
-				convertPartitionKey: int.Parse, convertRowKey: rk => int.Parse(rk.Substring("UserRecord_".Length)));
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
+			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id, id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
+
 
 			var employee = new Employee
 			{
@@ -946,7 +976,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 
-			
+
 			var record = tableStore.GetRecord("1", "UserRecord_1");
 
 			Assert.AreEqual(1, record.CompanyId);
@@ -959,11 +989,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_record_with_calculated_row_key_typed()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId.ToString(), calculatedRowKey: e => "UserRecord_" + e.Id,
-				calculatedPartitionKeyFromParameter: x => x.ToString(),
-				calculatedRowKeyFromParameter: x => "UserRecord_" + x,
-				convertPartitionKey: int.Parse, convertRowKey: rk => int.Parse(rk.Substring("UserRecord_".Length)));
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
+			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id, id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
+
 
 			var employee = new Employee
 			{
@@ -988,11 +1021,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void insert_multiple_record_with_fixed_partition_key()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => "SomeString", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => null,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: null, convertRowKey: int.Parse);
+			var pKeyMapper = new FixedKeyMapper<Employee, int>("SomeString");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 			var employee = new Employee
 			{
@@ -1028,19 +1063,21 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
 			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
 
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
+			var tableConverter2 = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
+
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter2);
 
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{anotherDate}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => $"{anotherDate}_{x}",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+			
 
 			tableStore2.DeleteTable();
 			tableStore2.CreateTable();
@@ -1071,19 +1108,19 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
 			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
 
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{anotherDate}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => $"{anotherDate}_{x}",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+			var tableConverter2 = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
+
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter2);
+
 
 			tableStore2.DeleteTable();
 			tableStore2.CreateTable();
@@ -1119,19 +1156,19 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
 			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
 
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{anotherDate}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => $"{anotherDate}_{x}",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+			var tableConverter2 = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
+
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter2);
+
 
 			tableStore2.DeleteTable();
 			tableStore2.CreateTable();
@@ -1165,17 +1202,15 @@ namespace TableStorage.Abstractions.POCO.Tests
 		public void delete_record_with_calculated_partition_key_using_date()
 		{
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
-			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
+		
 
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.CompanyId, rowProperty: e => e.Id, calculatedPartitionKey: e => $"{date}_{e.CompanyId}", calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), convertRowKey: int.Parse);
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-
-
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 			var employee = new Employee
 			{
@@ -1185,22 +1220,27 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Department = new Department { Id = 22, Name = "Executive" }
 			};
 			tableStore.Insert(employee);
-			
+
 			tableStore.Delete(employee);
 
 			Assert.AreEqual(3, tableStore.GetRecordCount());
-		
+
 		}
 
 
 		[TestMethod]
 		public void insert_record_with_calculated_partition_key_from_multiple_properties()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => null,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: null, convertRowKey: int.Parse);
+
+
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
 
 			var employee = new Employee
 			{
@@ -1223,11 +1263,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_record_with_calculated_partition_key_from_multiple_properties()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => null,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: null, convertRowKey: int.Parse);
+
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 			var employee = new Employee
 			{
@@ -1249,11 +1292,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void update_record_with_calculated_partition_key_from_multiple_properties()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => null,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: null, convertRowKey: int.Parse);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 			var employee = new Employee
 			{
@@ -1282,13 +1327,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 			KeyGenerator.DefineParitionKey(typeof(Employee), e=>$"{e.CompanyId}.{e.DepartmentId}");
 			KeyGenerator.DefineRowKey(typeof(Employee), e => $"{e.Id}");
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => null,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: null, convertRowKey: int.Parse);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
 
-			
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
 
 			var employee = new Employee
 			{
@@ -1315,12 +1361,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 			KeyGenerator.DefineParitionKey(typeof(Employee), e => $"{e.CompanyId}.{e.DepartmentId}");
 			KeyGenerator.DefineRowKey(typeof(Employee), e => $"{e.Id}");
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
-				calculatedPartitionKeyFromParameter: x => null,
-				calculatedRowKeyFromParameter: x => x.ToString(),
-				convertPartitionKey: null, convertRowKey: int.Parse);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
 
+			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 
 			var employee = new Employee
@@ -1351,5 +1398,6 @@ namespace TableStorage.Abstractions.POCO.Tests
 		{
 			tableStore.DeleteTable();
 		}
+		
 	}
 }
