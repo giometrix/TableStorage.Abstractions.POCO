@@ -1246,6 +1246,106 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 		}
 
+		[TestMethod]
+		public void update_record_with_calculated_partition_key_from_multiple_properties()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => null,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: null, convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			employee.Name = "Ted";
+
+			tableStore.Update(employee);
+
+			var record = tableStore.GetRecord("1.22", "1");
+
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual(22, record.Department.Id);
+			Assert.AreEqual("Ted", record.Name);
+
+		}
+
+		[TestMethod]
+		public void get_record_with_calculated_partition_key_from_multiple_properties_using_extension_method()
+		{
+			KeyGenerator.DefineParitionKey(typeof(Employee), e=>$"{e.CompanyId}.{e.DepartmentId}");
+			KeyGenerator.DefineRowKey(typeof(Employee), e => $"{e.Id}");
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => null,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: null, convertRowKey: int.Parse);
+
+			
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var record = tableStore.GetRecord(KeyGenerator.PartitionKey<Employee>(new {CompanyId=1, DepartmentId=22}), 
+				KeyGenerator.RowKey<Employee>(new { Id = 1 }));
+
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual(22, record.Department.Id);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
+		[TestMethod]
+		public void update_record_with_calculated_partition_key_from_multiple_properties_using_extension_method()
+		{
+			KeyGenerator.DefineParitionKey(typeof(Employee), e => $"{e.CompanyId}.{e.DepartmentId}");
+			KeyGenerator.DefineRowKey(typeof(Employee), e => $"{e.Id}");
+
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => null,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: null, convertRowKey: int.Parse);
+
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			employee.Name = "Ted";
+
+			tableStore.Update(employee);
+
+			var record = tableStore.GetRecord(
+				KeyGenerator.PartitionKey<Employee>(new { CompanyId = 1, DepartmentId = 22 }),
+				KeyGenerator.RowKey<Employee>(new { Id = 1 }));
+
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual(22, record.Department.Id);
+			Assert.AreEqual("Ted", record.Name);
+
+		}
+
 		[TestCleanup]
 		public void Cleanup()
 		{
