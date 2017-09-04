@@ -1191,6 +1191,61 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(3, tableStore.GetRecordCount());
 		
 		}
+
+
+		[TestMethod]
+		public void insert_record_with_calculated_partition_key_from_multiple_properties()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => null,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: null, convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var record = ts.GetRecord("1.22", "1");
+
+			Assert.AreEqual("1.22", record.PartitionKey);
+			Assert.AreEqual("1", record.RowKey);
+			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
+
+		}
+
+		[TestMethod]
+		public void get_record_with_calculated_partition_key_from_multiple_properties()
+		{
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				partitionProperty: null, rowProperty: e => e.Id, calculatedPartitionKey: e => e.CompanyId + "." + e.Department.Id, calculatedRowKey: e => e.Id.ToString(),
+				calculatedPartitionKeyFromParameter: x => null,
+				calculatedRowKeyFromParameter: x => x.ToString(),
+				convertPartitionKey: null, convertRowKey: int.Parse);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Insert(employee);
+
+			var record = tableStore.GetRecord("1.22", "1");
+
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual(22, record.Department.Id);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
 		[TestCleanup]
 		public void Cleanup()
 		{
