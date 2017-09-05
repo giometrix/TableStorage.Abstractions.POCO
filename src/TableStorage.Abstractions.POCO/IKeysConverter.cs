@@ -2,7 +2,7 @@
 
 namespace TableStorage.Abstractions.POCO
 {
-	public interface ITableConverter<T, TPartitionKey, TRowKey> 
+	public interface IKeysConverter<T, TPartitionKey, TRowKey> 
 	{
 		DynamicTableEntity ToEntity(T obj);
 		T FromEntity(DynamicTableEntity entity);

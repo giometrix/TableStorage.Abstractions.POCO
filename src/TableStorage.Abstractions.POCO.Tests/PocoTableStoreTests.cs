@@ -670,9 +670,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",  tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",  keysConverter);
 
 			var employee = new Employee
 			{
@@ -699,9 +699,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 			tableStore.DeleteTable();
 			tableStore.CreateTable();
 			var employee = new Employee
@@ -724,9 +724,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
@@ -750,9 +750,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 
@@ -782,9 +782,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -812,9 +812,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -842,9 +842,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var pKeyMapper = new KeyMapper<Employee, int>(e =>e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id =>id.ToString());
 			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -873,9 +873,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
 			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
@@ -901,9 +901,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
 			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
@@ -930,9 +930,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
 			var rKeyMapper = new KeyMapper<Employee, int>(e=>"UserRecord_" + e.Id, id=> int.Parse(id.Substring("UserRecord_".Length)), e=>e.Id, id=>"UserRecord_" + id);
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 
@@ -961,9 +961,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
 			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id, id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 
@@ -992,9 +992,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
 			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id, id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 
@@ -1025,9 +1025,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
@@ -1068,13 +1068,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
-			var tableConverter2 = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
+			var keysConverter2 = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter2);
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
 
 
 			
@@ -1113,13 +1113,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
-			var tableConverter2 = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
+			var keysConverter2 = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter2);
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
 
 
 			tableStore2.DeleteTable();
@@ -1161,13 +1161,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
-			var tableConverter2 = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
+			var keysConverter2 = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter2);
+			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
 
 
 			tableStore2.DeleteTable();
@@ -1208,9 +1208,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
@@ -1237,9 +1237,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -1268,9 +1268,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
@@ -1296,9 +1296,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
@@ -1338,9 +1338,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -1378,9 +1378,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 				id => id.ToString());
 
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
+			var keysConverter = new CalculatedKeysConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee

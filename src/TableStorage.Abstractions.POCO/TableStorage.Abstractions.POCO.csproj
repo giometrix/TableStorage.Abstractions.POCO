@@ -89,11 +89,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CalculatedKeyMapper.cs" />
-    <Compile Include="CalculatedKeysTableConverter.cs" />
+    <Compile Include="CalculatedKeysConverter.cs" />
     <Compile Include="FixedKeyMapper.cs" />
     <Compile Include="KeyMapper.cs" />
-    <Compile Include="SimpleTableConverter.cs" />
-    <Compile Include="ITableConverter.cs" />
+    <Compile Include="SimpleKeysConverter.cs" />
+    <Compile Include="IKeysConverter.cs" />
     <Compile Include="PocoTableStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

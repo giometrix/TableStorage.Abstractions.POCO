@@ -20,7 +20,7 @@ namespace TableStorage.Abstractions.POCO
 			new ConcurrentDictionary<Type, ConstructorInfo>();
 
 
-		private readonly ITableConverter<T, TPartitionKey, TRowKey> _tableConverter;
+		private readonly IKeysConverter<T, TPartitionKey, TRowKey> _keysConverter;
 		private readonly TableStore<DynamicTableEntity> _tableStore;
 		
 
@@ -51,7 +51,7 @@ namespace TableStorage.Abstractions.POCO
 			if (rowProperty == null) throw new ArgumentNullException(nameof(rowProperty));
 
 
-			_tableConverter = new SimpleTableConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
+			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
 			
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
 
@@ -86,7 +86,7 @@ namespace TableStorage.Abstractions.POCO
 			if (partitionProperty == null) throw new ArgumentNullException(nameof(partitionProperty));
 			if (rowProperty == null) throw new ArgumentNullException(nameof(rowProperty));
 
-			_tableConverter = new SimpleTableConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
+			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
 
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
 				retryWaitTimeInSeconds);
@@ -100,7 +100,7 @@ namespace TableStorage.Abstractions.POCO
 		/// <param name="storageConnectionString">The storage connection string.</param>
 		/// <param name="retries">The retries.</param>
 		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
-		/// <param name="tableConverter">The table converter.</param>
+		/// <param name="keysConverter">The table converter.</param>
 		/// <exception cref="ArgumentNullException">
 		/// tableName
 		/// or
@@ -109,14 +109,14 @@ namespace TableStorage.Abstractions.POCO
 		/// tableConverter
 		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
-			SimpleTableConverter<T,TPartitionKey,TRowKey> tableConverter)
+			SimpleKeysConverter<T,TPartitionKey,TRowKey> keysConverter)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (tableConverter == null) throw new ArgumentNullException(nameof(tableConverter));
+			if (keysConverter == null) throw new ArgumentNullException(nameof(keysConverter));
 
 
-			_tableConverter = tableConverter;
+			_keysConverter = keysConverter;
 
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
 				retryWaitTimeInSeconds);
@@ -128,7 +128,7 @@ namespace TableStorage.Abstractions.POCO
 		/// </summary>
 		/// <param name="tableName">Name of the table.</param>
 		/// <param name="storageConnectionString">The storage connection string.</param>
-		/// <param name="tableConverter">The table converter.</param>
+		/// <param name="keysConverter">The table converter.</param>
 		/// <exception cref="ArgumentNullException">
 		/// tableName
 		/// or
@@ -137,13 +137,13 @@ namespace TableStorage.Abstractions.POCO
 		/// tableConverter
 		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString,
-			CalculatedKeysTableConverter<T,TPartitionKey,TRowKey> tableConverter)
+			CalculatedKeysConverter<T,TPartitionKey,TRowKey> keysConverter)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (tableConverter == null) throw new ArgumentNullException(nameof(tableConverter));
+			if (keysConverter == null) throw new ArgumentNullException(nameof(keysConverter));
 
-			_tableConverter = tableConverter;
+			_keysConverter = keysConverter;
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
 
 		}
@@ -155,23 +155,23 @@ namespace TableStorage.Abstractions.POCO
 		/// <param name="storageConnectionString">The storage connection string.</param>
 		/// <param name="retries">The retries.</param>
 		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
-		/// <param name="tableConverter">The table converter.</param>
+		/// <param name="keysConverter">The table converter.</param>
 		/// <exception cref="ArgumentNullException">
 		/// tableName
 		/// or
 		/// storageConnectionString
 		/// </exception>
 		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
-			CalculatedKeysTableConverter<T, TPartitionKey, TRowKey> tableConverter)
+			CalculatedKeysConverter<T, TPartitionKey, TRowKey> keysConverter)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (tableConverter == null)
+			if (keysConverter == null)
 			{
-				throw new ArgumentNullException(nameof(tableConverter));
+				throw new ArgumentNullException(nameof(keysConverter));
 			}
 
-			_tableConverter = tableConverter;
+			_keysConverter = keysConverter;
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
 				retryWaitTimeInSeconds);
 
@@ -1012,7 +1012,7 @@ namespace TableStorage.Abstractions.POCO
 
 		private DynamicTableEntity CreateEntity(T record)
 		{
-			return _tableConverter.ToEntity(record);
+			return _keysConverter.ToEntity(record);
 		}
 
 		private IEnumerable<DynamicTableEntity> CreateEntities(IEnumerable<T> records)
@@ -1026,7 +1026,7 @@ namespace TableStorage.Abstractions.POCO
 			if (entity == null)
 				return default(T);
 
-			return _tableConverter.FromEntity(entity);
+			return _keysConverter.FromEntity(entity);
 
 		}
 
@@ -1057,7 +1057,7 @@ namespace TableStorage.Abstractions.POCO
 
 		private DynamicTableEntity CreateEntityWithEtag(T record)
 		{
-			var dynamicEntity = _tableConverter.ToEntity(record);
+			var dynamicEntity = _keysConverter.ToEntity(record);
 
 			var original = _tableStore.GetRecord(dynamicEntity.PartitionKey, dynamicEntity.RowKey);
 
@@ -1068,12 +1068,12 @@ namespace TableStorage.Abstractions.POCO
 
 		private string GetPartitionKeyString(TPartitionKey key)
 		{
-			return _tableConverter.PartitionKey(key);
+			return _keysConverter.PartitionKey(key);
 		}
 
 		private string GetRowKeyString(TRowKey key)
 		{
-			return _tableConverter.RowKey(key);
+			return _keysConverter.RowKey(key);
 		}
 	}
 }

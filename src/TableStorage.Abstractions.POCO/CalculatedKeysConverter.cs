@@ -5,14 +5,14 @@ using TableStorage.Abstractions.TableEntityConverters;
 
 namespace TableStorage.Abstractions.POCO
 {
-	public class CalculatedKeysTableConverter<T, TPartitionKey, TRowKey> : ITableConverter<T, TPartitionKey, TRowKey>
+	public class CalculatedKeysConverter<T, TPartitionKey, TRowKey> : IKeysConverter<T, TPartitionKey, TRowKey>
 		where T: new()
 	{
 		private readonly KeyMapper<T, TPartitionKey> _partitionMapper;
 		private readonly KeyMapper<T, TRowKey> _rowMapper;
 		private readonly Expression<Func<T, object>>[] _ignoredProperties;
 
-		public CalculatedKeysTableConverter(KeyMapper<T, TPartitionKey> partitionMapper, KeyMapper<T,TRowKey> rowMapper, 
+		public CalculatedKeysConverter(KeyMapper<T, TPartitionKey> partitionMapper, KeyMapper<T,TRowKey> rowMapper, 
 			params Expression<Func<T, object>>[] ignoredProperties)
 		{
 			_partitionMapper = partitionMapper;

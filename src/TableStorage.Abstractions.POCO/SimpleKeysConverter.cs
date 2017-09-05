@@ -9,14 +9,14 @@ using TableStorage.Abstractions.TableEntityConverters;
 
 namespace TableStorage.Abstractions.POCO
 {
-	public class SimpleTableConverter<T, TPartitionKey, TRowKey> : ITableConverter<T, TPartitionKey, TRowKey>
+	public class SimpleKeysConverter<T, TPartitionKey, TRowKey> : IKeysConverter<T, TPartitionKey, TRowKey>
 		where T : new()
 	{
 		private Expression<Func<T, object>> _partitionProperty;
 		private Expression<Func<T, object>> _rowProperty;
 		private Expression<Func<T, object>>[] _ignoredProperties;
 
-		public SimpleTableConverter(Expression<Func<T, object>> partitionProperty,
+		public SimpleKeysConverter(Expression<Func<T, object>> partitionProperty,
 			Expression<Func<T, object>> rowProperty, Expression<Func<T, object>>[] ignoredProperties)
 		{
 			_partitionProperty = partitionProperty;

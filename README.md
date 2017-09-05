@@ -75,61 +75,77 @@ tableStore.Insert(employee);
 In this example we ignored the ```Department``` property.
 
 ### Calculated Keys
-There may be situations where you want the partition key or row key to be calculated from information outside of your object (such as date, which can be a useful partition key) or where you want to use a fixed key (e.g. you don't need a row key).
+There may be situations where you want the partition key or row key to be calculated from information outside of your object (such as date, which can be a useful partition key), from multiple properties, or a fixed key (e.g. you don't need a row key).
 
-Here's a contrived example of using date as a partition key:
+Here's an example of using the ```CompanyId``` and ```DepartmentId``` as partition keys.
 
 ```csharp
-var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
 
-var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-partitionProperty: e => e.CompanyId, 
-rowProperty: e => e.Id, 
-calculatedPartitionKey: e => $"{date}_{e.CompanyId}", 
-calculatedRowKey: e => e.Id.ToString(),
-calculatedPartitionKeyFromParameter: x => $"{date}_{x}",
-calculatedRowKeyFromParameter: x => x.ToString(),
-convertPartitionKey: pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), 
-convertRowKey: int.Parse);
+
+var partitionKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}", key =>
+{
+	var parts = key.Split('.');
+	var companyId = int.Parse(parts[0]);
+	var departmentId = int.Parse(parts[1]);
+	return new PartitionKey(companyId, departmentId);
+}, key=>$"{key.CompanyId}.{key.DepartmentId}");
+
+var rowKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+	id => id.ToString());
+
+var keysConverter = new CalculatedKeysConverter<Employee, PartitionKey, int>(partitionKeyMapper, rowKeyMapper);
+
+new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 ```
 
-It's a little more complicated than I would have liked (I'm open to suggestions), but I'll try to explain the best I can:
+If you used a previous version of this library, you may remember a more complicated, more limited constructor for ```PocoTableStore```.  We've simplified things and added some flexibility by introducing ```IKeysConverter```, where implementations encapsulate the rules for converting to/from table storage keys.
 
-```calculatedPartitionKey```: how to build the partition key from the object.  In our case it's date + ```CompanyId```.
+Notice that we introduced a new class called ```PartitionKey```.  This class is a simple DTO to capture ```CompanyId``` and ```DepartmentId```.  A nice side effect of having a class for this is that we gain type safety and intellisense.
 
-```calculatedRowKey```: how to build the row key from the object.  In our case it's ```Id```.
+```csharp
+public class PartitionKey
+{
+	public PartitionKey(int companyId, int departmentId)
+	{
+		CompanyId = companyId;
+		DepartmentId = departmentId;
+	}
+	public int CompanyId { get; }
+	public int DepartmentId { get; }
+}
+```
+Inserting data is the same as always:
 
-```calculatedPartitionKeyFromParameter```: how to build the calculated partition key from the given partition key.  In our case we would provide ```CompanyId``` and the output would be date + ```CompanyId```.
-
-```calculatedRowFromParameter```: how to build the calculated row key from the given row key.  In our case we would provide ```Id``` and the output would be the stringified version.
-
-Whew.... that was a lot of work.  Was it worth it?  I sure think so, since it makes working with the records feel much more natural.  To insert a record you continue to use syntax such as the following:
 ```csharp
 var employee = new Employee
 {
 	CompanyId = 1,
-	Id = 142,
+	Id = 1,
 	Name = "Mr. Jim CEO",
 	Department = new Department { Id = 22, Name = "Executive" }
 };
 tableStore.Insert(employee);
 ```
+In table storage, the partition key for the above example would be "1.22" and it's row key would be "1".
 
-Notice that you don't need to worry about constructing the partition key.  Similarly, to query, you continue to query using just the simple identifiers like so:
-```charp
-var record = tableStore.GetRecord(1, 142);
+To retrieve the record, we can use ```PartitionKey``` to build the multi-part key.
+```csharp
+var record = tableStore.GetRecord(new PartitionKey(1, 22), 1);
 ```
+
+
 #### Fixed Keys
 Fixed keys are really just a specialization of calculated keys.  A scenario that you may run into sometimes is where you only need a single key, which is the case when you only query the data using point queries ("get by id").  In this scenario, you'll probably choose to supply a partition key and not a row key since in this case you'd get better throughput using partition keys in a high volume system (again, we are assuming a point-query-only scenario).
+
+Note that in v1.3 of the library we've simplified fixed key scenarios by introducing a new ```FixedKey``` mapper, which will be consumed by the ```CalculatedKeysConverter```.
 
 Again, we will use a contrived example.  Here we have use ```Id``` as partition key , and we always use the word "user" for rowkey, since this will not be used.
 
 ```charp
-tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
-				partitionProperty: e => e.Id, rowProperty: null, calculatedPartitionKey: e => e.Id.ToString(), calculatedRowKey: e => "user",
-calculatedPartitionKeyFromParameter: x => x.ToString(),
-calculatedRowKeyFromParameter: x => "user",
-convertPartitionKey: int.Parse, convertRowKey: null);
+var partitionKeyMapper = new KeyMapper<Employee, int>(e =>e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id =>id.ToString());
+var rowKeyMapper = new FixedKeyMapper<Employee, int>("user");
+
+var keysConverter = new CalculatedKeysConverter<Employee, int, int>(partitionKeyMapper, rowKeyMapper);
 ```	
 
 Inserting the data remains the same:
