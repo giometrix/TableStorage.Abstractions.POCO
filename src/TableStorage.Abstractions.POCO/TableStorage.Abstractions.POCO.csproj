@@ -91,7 +91,6 @@
     <Compile Include="CalculatedKeyMapper.cs" />
     <Compile Include="CalculatedKeysTableConverter.cs" />
     <Compile Include="FixedKeyMapper.cs" />
-    <Compile Include="KeyGenerator.cs" />
     <Compile Include="KeyMapper.cs" />
     <Compile Include="SimpleTableConverter.cs" />
     <Compile Include="ITableConverter.cs" />

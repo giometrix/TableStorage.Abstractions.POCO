@@ -7,7 +7,7 @@ using System.Reactive;
 namespace TableStorage.Abstractions.POCO.Tests
 {
 	[TestClass]
-	public class PocoTableStoreTests
+	public partial class PocoTableStoreTests
 	{
 		private PocoTableStore<Employee, int, int> tableStore;
 
@@ -1321,50 +1321,6 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 		}
 
-		[TestMethod]
-		public void get_record_with_calculated_partition_key_from_multiple_properties_using_extension_method()
-		{
-			KeyGenerator.DefineParitionKey(typeof(Employee), e=>$"{e.CompanyId}.{e.DepartmentId}");
-			KeyGenerator.DefineRowKey(typeof(Employee), e => $"{e.Id}");
-
-			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
-			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
-				id => id.ToString());
-
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
-
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
-
-
-			var employee = new Employee
-			{
-				CompanyId = 1,
-				Id = 1,
-				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
-			};
-			tableStore.Insert(employee);
-
-			var record = tableStore.GetRecord(KeyGenerator.PartitionKey<Employee>(new {CompanyId=1, DepartmentId=22}), 
-				KeyGenerator.RowKey<Employee>(new { Id = 1 }));
-
-			Assert.AreEqual(1, record.Id);
-			Assert.AreEqual(22, record.Department.Id);
-			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
-		}
-
-		public class PartitionKey
-		{
-			public PartitionKey(int companyId, int departmentId)
-			{
-				CompanyId = companyId;
-				DepartmentId = departmentId;
-			}
-			public int CompanyId { get; }
-			public int DepartmentId { get; }
-		}
-
 
 		[TestMethod]
 		public void get_record_with_calculated_partition_key_from_multiple_properties_using_class_as_key()
@@ -1407,18 +1363,24 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 
 		[TestMethod]
-		public void update_record_with_calculated_partition_key_from_multiple_properties_using_extension_method()
+		public void update_record_with_calculated_partition_key_from_multiple_properties_using_class_as_key()
 		{
-			KeyGenerator.DefineParitionKey(typeof(Employee), e => $"{e.CompanyId}.{e.DepartmentId}");
-			KeyGenerator.DefineRowKey(typeof(Employee), e => $"{e.Id}");
 
-			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
+			var pKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}", key =>
+			{
+				var parts = key.Split('.');
+				var companyId = int.Parse(parts[0]);
+				var departmentId = int.Parse(parts[1]);
+				return new PartitionKey(companyId, departmentId);
+			}, key => $"{key.CompanyId}.{key.DepartmentId}");
+
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
-			var tableConverter = new CalculatedKeysTableConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+			var tableConverter = new CalculatedKeysTableConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
+
+			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
 
 
 			var employee = new Employee
@@ -1428,15 +1390,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Name = "Mr. Jim CEO",
 				Department = new Department { Id = 22, Name = "Executive" }
 			};
-			tableStore.Insert(employee);
+			tableStore2.Insert(employee);
 
 			employee.Name = "Ted";
 
-			tableStore.Update(employee);
+			tableStore2.Update(employee);
 
-			var record = tableStore.GetRecord(
-				KeyGenerator.PartitionKey<Employee>(new { CompanyId = 1, DepartmentId = 22 }),
-				KeyGenerator.RowKey<Employee>(new { Id = 1 }));
+			var record = tableStore2.GetRecord(
+			new PartitionKey(1,22), 1 );
 
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual(22, record.Department.Id);
