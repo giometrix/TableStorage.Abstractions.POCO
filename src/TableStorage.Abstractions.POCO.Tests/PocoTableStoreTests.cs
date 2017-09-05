@@ -1354,6 +1354,57 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 		}
 
+		public class PartitionKey
+		{
+			public PartitionKey(int companyId, int departmentId)
+			{
+				CompanyId = companyId;
+				DepartmentId = departmentId;
+			}
+			public int CompanyId { get; }
+			public int DepartmentId { get; }
+		}
+
+
+		[TestMethod]
+		public void get_record_with_calculated_partition_key_from_multiple_properties_using_class_as_key()
+		{
+			
+
+			var pKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}", key =>
+			{
+				var parts = key.Split('.');
+				var companyId = int.Parse(parts[0]);
+				var departmentId = int.Parse(parts[1]);
+				return new PartitionKey(companyId, departmentId);
+			}, key=>$"{key.CompanyId}.{key.DepartmentId}");
+
+			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+
+			var tableConverter = new CalculatedKeysTableConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
+
+			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", tableConverter);
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore2.Insert(employee);
+
+			var record = tableStore2.GetRecord(new PartitionKey(1, 22), 1);
+
+			Assert.AreEqual(1, record.Id);
+			Assert.AreEqual(22, record.Department.Id);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
+
+
 
 		[TestMethod]
 		public void update_record_with_calculated_partition_key_from_multiple_properties_using_extension_method()
