@@ -95,7 +95,7 @@ var rowKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse,
 
 var keysConverter = new CalculatedKeysConverter<Employee, PartitionKey, int>(partitionKeyMapper, rowKeyMapper);
 
-new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+var tableStore = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 ```
 
 If you used a previous version of this library, you may remember a more complicated, more limited constructor for ```PocoTableStore```.  We've simplified things and added some flexibility by introducing ```IKeysConverter```, where implementations encapsulate the rules for converting to/from table storage keys.
@@ -126,7 +126,7 @@ var employee = new Employee
 };
 tableStore.Insert(employee);
 ```
-In table storage, the partition key for the above example would be "1.22" and it's row key would be "1".
+In table storage, the partition key for the above example would be "1.22" and its row key would be "1".
 
 To retrieve the record, we can use ```PartitionKey``` to build the multi-part key.
 ```csharp
@@ -176,7 +176,7 @@ Note that our table store was ```PocoTableStore<Employee, int, int>```, but that
 ```var record = tableStore.GetRecord(142, "user");```
 which is both clear and provides type safety.
 
-### Further Filtering (Beyond Parition & Row Keys)
+### Further Filtering (Beyond Partition & Row Keys)
 New to v1.2, we now include the ability to filter on properties outside of partition and row keys.  Please note that this filtering occurs outside of table storage, so please consider using at least the partition key for best results.
 
 Example:
