@@ -185,4 +185,4 @@ Example:
 var records = tableStore.GetByPartitionKey(1, e=>e.Name == "Jim CEO");
 ```
 
-In this example we get all records in parition "1" where the name is "Jim CEO".
+In this example we get all records in parition "1" where the name is "Jim CEO". 
