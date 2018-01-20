@@ -1,6 +1,6 @@
 # TableStorage.Abstractions.POCO
 [![Build status](https://ci.appveyor.com/api/projects/status/fx9j8yc06s9ib4n9?svg=true)](https://ci.appveyor.com/project/giometrix/tablestorage-abstractions-poco)
-[![NuGet](https://img.shields.io/nuget/v/TableStorage.Abstractions.POCO.svg)](https://www.nuget.org/packages/TableStorage.Abstractions.POCO/1.0.0)
+[![NuGet](https://img.shields.io/nuget/v/TableStorage.Abstractions.POCO.svg)](https://www.nuget.org/packages/TableStorage.Abstractions.POCO)
 
 This project builds on top of [TableStorage.Abstractions](https://github.com/Tazmainiandevil/TableStorage.Abstractions) (a repository wrapper over [Azure Table Storage](https://docs.microsoft.com/en-us/azure/cosmos-db/table-storage-how-to-use-dotnet)) and [TableStorage.Abstractions.TableEntityConverters](https://github.com/giometrix/TableStorage.Abstractions.TableEntityConverters) such that objects to be serialized to and from Azure Table Storage are Plain Old CLR Objects (POCO) rather than TableEntities.
 
