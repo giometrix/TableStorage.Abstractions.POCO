@@ -79,8 +79,8 @@
     <Reference Include="TableStorage.Abstractions, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\TableStorage.Abstractions.1.1.0\lib\net46\TableStorage.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="TableStorage.Abstractions.TableEntityConverters, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TableStorage.Abstractions.TableEntityConverters.1.1.2\lib\net462\TableStorage.Abstractions.TableEntityConverters.dll</HintPath>
+    <Reference Include="TableStorage.Abstractions.TableEntityConverters, Version=1.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TableStorage.Abstractions.TableEntityConverters.1.1.3\lib\net462\TableStorage.Abstractions.TableEntityConverters.dll</HintPath>
     </Reference>
     <Reference Include="Useful.Extensions, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Useful.Extensions.1.0.8\lib\net452\Useful.Extensions.dll</HintPath>
