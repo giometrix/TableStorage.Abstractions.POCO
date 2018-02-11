@@ -86,8 +86,8 @@
       <HintPath>..\packages\System.Spatial.5.8.2\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows" />
-    <Reference Include="TableStorage.Abstractions, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TableStorage.Abstractions.1.1.0\lib\net46\TableStorage.Abstractions.dll</HintPath>
+    <Reference Include="TableStorage.Abstractions, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TableStorage.Abstractions.1.1.1\lib\net46\TableStorage.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="TableStorage.Abstractions.TableEntityConverters, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\TableStorage.Abstractions.TableEntityConverters.1.1.2\lib\net462\TableStorage.Abstractions.TableEntityConverters.dll</HintPath>
