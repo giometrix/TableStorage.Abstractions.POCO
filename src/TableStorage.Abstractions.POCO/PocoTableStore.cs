@@ -8,12 +8,13 @@ using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Table;
-using TableStorage.Abstractions.TableEntityConverters;
+using TableStorage.Abstractions.Models;
+using TableStorage.Abstractions.Store;
 using Useful.Extensions;
 
 namespace TableStorage.Abstractions.POCO
 {
-	public class PocoTableStore<T, TPartitionKey, TRowKey> : ITableStore<T> where T : new()
+	public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPartitionKey, TRowKey> where T : new()
 	{
 		//hack because this is internal.  Need to get this exposed.
 		private static readonly ConcurrentDictionary<Type, ConstructorInfo> _pagedResultConstructors =
@@ -22,28 +23,27 @@ namespace TableStorage.Abstractions.POCO
 
 		private readonly IKeysConverter<T, TPartitionKey, TRowKey> _keysConverter;
 		private readonly TableStore<DynamicTableEntity> _tableStore;
-		
+
 
 
 		/// <summary>
-		///     Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
 		/// </summary>
 		/// <param name="tableName">Name of the azure storage table.</param>
 		/// <param name="storageConnectionString">The azure storage connection string.</param>
 		/// <param name="partitionProperty">The property to be used as a partition key.</param>
 		/// <param name="rowProperty">The property to be used as a row key.</param>
+		/// <param name="tableStorageOptions">The table storage options.</param>
 		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
-		/// <exception cref="ArgumentNullException">
-		///     tableName
-		///     or
-		///     storageConnectionString
-		///     or
-		///     partitionProperty
-		///     or
-		///     rowProperty
-		/// </exception>
+		/// <exception cref="ArgumentNullException">tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// partitionProperty
+		/// or
+		/// rowProperty</exception>
 		public PocoTableStore(string tableName, string storageConnectionString, Expression<Func<T, object>> partitionProperty,
-			Expression<Func<T, object>> rowProperty, params Expression<Func<T, object>>[] ignoredProperties)
+			Expression<Func<T, object>> rowProperty, TableStorageOptions tableStorageOptions = null, params Expression<Func<T, object>>[] ignoredProperties)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
@@ -52,130 +52,63 @@ namespace TableStorage.Abstractions.POCO
 
 
 			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
-			
-			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
+
+			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
 
 		}
 
 
-		/// <summary>
-		///     Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
-		/// </summary>
-		/// <param name="tableName">Name of the azure storage table.</param>
-		/// <param name="storageConnectionString">The azure storage connection string.</param>
-		/// <param name="retries">The number of retries.</param>
-		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
-		/// <param name="partitionProperty">The property to be used as a partition key.</param>
-		/// <param name="rowProperty">The property to be used as a row key.</param>
-		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
-		/// <exception cref="ArgumentNullException">
-		///     tableName
-		///     or
-		///     storageConnectionString
-		///     or
-		///     partitionProperty
-		///     or
-		///     rowProperty
-		/// </exception>
-		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
-			Expression<Func<T, object>> partitionProperty, Expression<Func<T, object>> rowProperty,
-			params Expression<Func<T, object>>[] ignoredProperties)
-		{
-			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
-			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (partitionProperty == null) throw new ArgumentNullException(nameof(partitionProperty));
-			if (rowProperty == null) throw new ArgumentNullException(nameof(rowProperty));
-
-			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
-
-			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
-				retryWaitTimeInSeconds);
-
-		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
-		/// </summary>
-		/// <param name="tableName">Name of the table.</param>
-		/// <param name="storageConnectionString">The storage connection string.</param>
-		/// <param name="retries">The retries.</param>
-		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
-		/// <param name="keysConverter">The table converter.</param>
-		/// <exception cref="ArgumentNullException">
-		/// tableName
-		/// or
-		/// storageConnectionString
-		/// or
-		/// tableConverter
-		/// </exception>
-		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
-			SimpleKeysConverter<T,TPartitionKey,TRowKey> keysConverter)
-		{
-			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
-			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (keysConverter == null) throw new ArgumentNullException(nameof(keysConverter));
-
-
-			_keysConverter = keysConverter;
-
-			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
-				retryWaitTimeInSeconds);
-
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
 		/// </summary>
 		/// <param name="tableName">Name of the table.</param>
 		/// <param name="storageConnectionString">The storage connection string.</param>
 		/// <param name="keysConverter">The table converter.</param>
-		/// <exception cref="ArgumentNullException">
-		/// tableName
+		/// <param name="tableStorageOptions">The table storage options.</param>
+		/// <exception cref="ArgumentNullException">tableName
 		/// or
 		/// storageConnectionString
 		/// or
-		/// tableConverter
-		/// </exception>
+		/// tableConverter</exception>
 		public PocoTableStore(string tableName, string storageConnectionString,
-			CalculatedKeysConverter<T,TPartitionKey,TRowKey> keysConverter)
+			SimpleKeysConverter<T,TPartitionKey,TRowKey> keysConverter, TableStorageOptions tableStorageOptions = null)
+		{
+			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
+			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
+			if (keysConverter == null) throw new ArgumentNullException(nameof(keysConverter));
+
+
+			_keysConverter = keysConverter;
+			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
+
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
+		/// </summary>
+		/// <param name="tableName">Name of the table.</param>
+		/// <param name="storageConnectionString">The storage connection string.</param>
+		/// <param name="keysConverter">The table converter.</param>
+		/// <param name="tableStorageOptions">The table storage options.</param>
+		/// <exception cref="ArgumentNullException">tableName
+		/// or
+		/// storageConnectionString
+		/// or
+		/// tableConverter</exception>
+		public PocoTableStore(string tableName, string storageConnectionString,
+			CalculatedKeysConverter<T,TPartitionKey,TRowKey> keysConverter, TableStorageOptions tableStorageOptions = null)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
 			if (keysConverter == null) throw new ArgumentNullException(nameof(keysConverter));
 
 			_keysConverter = keysConverter;
-			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString);
+			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
 
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}"/> class.
-		/// </summary>
-		/// <param name="tableName">Name of the table.</param>
-		/// <param name="storageConnectionString">The storage connection string.</param>
-		/// <param name="retries">The retries.</param>
-		/// <param name="retryWaitTimeInSeconds">The retry wait time in seconds.</param>
-		/// <param name="keysConverter">The table converter.</param>
-		/// <exception cref="ArgumentNullException">
-		/// tableName
-		/// or
-		/// storageConnectionString
-		/// </exception>
-		public PocoTableStore(string tableName, string storageConnectionString, int retries, double retryWaitTimeInSeconds,
-			CalculatedKeysConverter<T, TPartitionKey, TRowKey> keysConverter)
-		{
-			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
-			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
-			if (keysConverter == null)
-			{
-				throw new ArgumentNullException(nameof(keysConverter));
-			}
-
-			_keysConverter = keysConverter;
-			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, retries,
-				retryWaitTimeInSeconds);
-
-			
 		}
 
 		/// <summary>

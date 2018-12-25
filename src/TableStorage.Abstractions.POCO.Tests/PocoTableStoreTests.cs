@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Reactive;
+using TableStorage.Abstractions.Models;
+using TableStorage.Abstractions.Store;
+
 namespace TableStorage.Abstractions.POCO.Tests
 {
 	[TestClass]
@@ -38,6 +41,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Name = "Lucy CEO",
 				Department = new Department {Id = 1, Name = "E Team"}
 			};
+
 			tableStore.Insert(new[] {employee, employee2, employee3});
 		}
 
@@ -126,7 +130,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Department = new Department {Id = 5, Name = "Test"}
 			};
 			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", e => e.CompanyId,
-				e => e.Id, e => e.Department);
+				e => e.Id, ignoredProperties: e => e.Department);
 			tableStore.Insert(employee);
 			var record = tableStore.GetRecord(99, 99);
 			Assert.IsNull(record.Department);
@@ -683,7 +687,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
 			var record = ts.GetRecord("SomeString", "1");
 
 			Assert.AreEqual("SomeString", record.PartitionKey);
@@ -765,7 +769,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
 			var record = ts.GetRecord("SomeString_1", "1");
 
 			Assert.AreEqual("SomeString_1", record.PartitionKey);
@@ -856,7 +860,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
 			var record = ts.GetRecord("1", "UserRecord");
 
 			Assert.AreEqual("1", record.PartitionKey);
@@ -945,7 +949,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
 			var record = ts.GetRecord("1", "UserRecord_1");
 
 			Assert.AreEqual("1", record.PartitionKey);
@@ -1047,7 +1051,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			tableStore.Insert(new Employee[]{employee, employee2});
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
 			var records = ts.GetAllRecords();
 
 			Assert.AreEqual(5, records.Count());
@@ -1251,7 +1255,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true");
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
 			var record = ts.GetRecord("1.22", "1");
 
 			Assert.AreEqual("1.22", record.PartitionKey);
