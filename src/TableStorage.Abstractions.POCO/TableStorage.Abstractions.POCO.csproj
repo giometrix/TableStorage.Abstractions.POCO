@@ -19,7 +19,8 @@ The library will convert simple properties to fields in Azure Table Storage. Com
     <PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
     <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
     <PackageTags>table-storage azure-table-storage poco table-entities tableentity</PackageTags>
-    <PackageReleaseNotes>support for .net core. updated nuget references to latest</PackageReleaseNotes>
+    <PackageReleaseNotes>Support for .net standard. Updated nuget references to latest</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
