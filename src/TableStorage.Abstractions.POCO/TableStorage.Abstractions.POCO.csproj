@@ -24,13 +24,8 @@ The library will convert simple properties to fields in Azure Table Storage. Com
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Reactive" Version="4.1.2" />
+    <PackageReference Include="TableStorage.Abstractions" Version="2.2.0" />
     <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.1.4" />
-    <PackageReference Include="Useful.Extensions" Version="2.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\TableStorage.Abstractions\TableStorage.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
