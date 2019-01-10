@@ -926,6 +926,32 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 		}
 
+		[TestMethod]
+		public void get_record_with_fixed_row_key_typed_where_partition_key_is_string()
+		{
+			var pKeyMapper = new KeyMapper<Employee, string>(e => e.Name, x=>x, e => e.Name, x=>x);
+			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
+
+			var keysConverter = new CalculatedKeysConverter<Employee, string, int>(pKeyMapper, rKeyMapper);
+
+			var ts = new PocoTableStore<Employee, string, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			ts.Insert(employee);
+
+
+			var record = ts.GetRecord("Mr. Jim CEO", int.MinValue); // rowkey is bogus in this case
+
+			Assert.AreEqual(1, record.CompanyId);
+			Assert.AreEqual("Mr. Jim CEO", record.Name);
+
+		}
 
 		[TestMethod]
 		public void insert_record_with_calculated_row_key()
