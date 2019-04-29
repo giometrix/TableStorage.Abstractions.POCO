@@ -73,7 +73,7 @@ namespace TableStorage.Abstractions.POCO
 		/// or
 		/// tableConverter</exception>
 		public PocoTableStore(string tableName, string storageConnectionString,
-			SimpleKeysConverter<T,TPartitionKey,TRowKey> keysConverter, TableStorageOptions tableStorageOptions = null)
+			SimpleKeysConverter<T, TPartitionKey, TRowKey> keysConverter, TableStorageOptions tableStorageOptions = null)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
@@ -99,7 +99,7 @@ namespace TableStorage.Abstractions.POCO
 		/// or
 		/// tableConverter</exception>
 		public PocoTableStore(string tableName, string storageConnectionString,
-			CalculatedKeysConverter<T,TPartitionKey,TRowKey> keysConverter, TableStorageOptions tableStorageOptions = null)
+			CalculatedKeysConverter<T, TPartitionKey, TRowKey> keysConverter, TableStorageOptions tableStorageOptions = null)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
@@ -141,6 +141,20 @@ namespace TableStorage.Abstractions.POCO
 			var entity = CreateEntity(record);
 
 			_tableStore.Insert(entity);
+		}
+		/// <summary>
+		/// Inserts or replaces the record
+		/// </summary>
+		/// <param name="record"></param>
+		/// <exception cref="ArgumentNullException">record</exception>
+		public void InsertOrReplace(T record)
+		{
+			if (record == null)
+				throw new ArgumentNullException(nameof(record));
+
+			var entity = CreateEntity(record);
+
+			_tableStore.InsertOrReplace(entity);
 		}
 
 		/// <summary>
@@ -382,6 +396,22 @@ namespace TableStorage.Abstractions.POCO
 			var entity = CreateEntity(record);
 
 			return _tableStore.InsertAsync(entity);
+		}
+
+		/// <summary>
+		/// Inserts or replaces the record
+		/// </summary>
+		/// <param name="record"></param>
+		/// <returns>Task.</returns>
+		/// <exception cref="ArgumentNullException">record</exception>
+		public Task InsertOrReplaceAsync(T record)
+		{
+			if (record == null)
+				throw new ArgumentNullException(nameof(record));
+
+			var entity = CreateEntity(record);
+
+			return _tableStore.InsertOrReplaceAsync(entity);
 		}
 
 		/// <summary>
@@ -1008,5 +1038,9 @@ namespace TableStorage.Abstractions.POCO
 		{
 			return _keysConverter.RowKey(key);
 		}
+
+
+
+
 	}
 }

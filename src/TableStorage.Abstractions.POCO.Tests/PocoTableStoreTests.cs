@@ -59,6 +59,40 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(4, tableStore.GetRecordCount());
 		}
 
+
+		[TestMethod]
+		public void insert_or_replace_record_inserts_when_record_is_new()
+		{
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			tableStore.InsertOrReplace(employee);
+			Assert.AreEqual(4, tableStore.GetRecordCount());
+		}
+
+
+		[TestMethod]
+		public void insert_or_replace_record_updates_when_record_is_not_new()
+		{
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			tableStore.Insert(employee);
+
+			employee.Name = "xxx";
+			tableStore.InsertOrReplace(employee);
+			Assert.AreEqual(4, tableStore.GetRecordCount());
+			Assert.AreEqual("xxx", tableStore.GetRecord(99,99).Name);
+		}
+
 		[TestMethod]
 		public void insert_records()
 		{
@@ -93,6 +127,39 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			await tableStore.InsertAsync(employee);
 			Assert.AreEqual(4, tableStore.GetRecordCount());
+		}
+
+		[TestMethod]
+		public async Task insert_or_replace_record_inserts_when_record_is_new_async()
+		{
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			await tableStore.InsertOrReplaceAsync(employee);
+			Assert.AreEqual(4, tableStore.GetRecordCount());
+		}
+
+
+		[TestMethod]
+		public async Task insert_or_replace_record_updates_when_record_is_not_new_async()
+		{
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			await tableStore.InsertAsync(employee);
+
+			employee.Name = "xxx";
+			await tableStore.InsertOrReplaceAsync(employee);
+			Assert.AreEqual(4, tableStore.GetRecordCount());
+			Assert.AreEqual("xxx", tableStore.GetRecord(99, 99).Name);
 		}
 
 

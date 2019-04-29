@@ -111,8 +111,8 @@
     </Reference>
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="TableStorage.Abstractions, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TableStorage.Abstractions.2.2.0\lib\net46\TableStorage.Abstractions.dll</HintPath>
+    <Reference Include="TableStorage.Abstractions, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TableStorage.Abstractions.2.3.0\lib\net46\TableStorage.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="TableStorage.Abstractions.TableEntityConverters, Version=1.1.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\TableStorage.Abstractions.TableEntityConverters.1.1.4\lib\net462\TableStorage.Abstractions.TableEntityConverters.dll</HintPath>

@@ -26,6 +26,13 @@ namespace TableStorage.Abstractions.POCO
 		void Insert(T record);
 
 		/// <summary>
+		/// Inserts the record if it does not exist, else updates the record.
+		/// </summary>
+		/// <param name="record">The record</param>
+		/// <exception cref="ArgumentNullException">record</exception>
+		void InsertOrReplace(T record);
+
+		/// <summary>
 		/// Inserts the records into a table storage table.
 		/// </summary>
 		/// <param name="records">The records.</param>
@@ -185,6 +192,14 @@ namespace TableStorage.Abstractions.POCO
 		/// <returns>Task.</returns>
 		/// <exception cref="ArgumentNullException">records</exception>
 		Task InsertAsync(IEnumerable<T> records);
+
+		/// <summary>
+		/// Inserts the record if it does not exist, else updates the record.
+		/// </summary>
+		/// <param name="record">The record</param>
+		/// <returns>Task</returns>
+		/// <exception cref="ArgumentNullException">record</exception>
+		Task InsertOrReplaceAsync(T record);
 
 		/// <summary>
 		/// Updates the record asynchronously.
