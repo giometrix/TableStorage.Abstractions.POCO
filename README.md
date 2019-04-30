@@ -43,6 +43,16 @@ var employee = new Employee
 			};
 tableStore.Insert(employee);
 ```
+### Insert Or Replace (Update)
+```csharp
+var employee = new Employee
+{
+	Name = "Test",
+	CompanyId = 99,
+	Id = 99,
+	Department = new Department { Id = 5, Name = "Test" }
+};
+tableStore.InsertOrReplace(employee);```
 
 ### Updating
 ```charp
