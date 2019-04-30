@@ -52,7 +52,8 @@ var employee = new Employee
 	Id = 99,
 	Department = new Department { Id = 5, Name = "Test" }
 };
-tableStore.InsertOrReplace(employee);```
+tableStore.InsertOrReplace(employee);
+```
 
 ### Updating
 ```charp
