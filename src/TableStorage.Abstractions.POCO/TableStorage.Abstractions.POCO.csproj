@@ -14,19 +14,24 @@ You create DTOs to save to ship data back and forth from the domain to Table Sto
 This simple library seeks to take care of the mapping for us, so that you can continue to write your domain objects as POCOs, while still being able to leverage the Azure Storage SDK.
 
 The library will convert simple properties to fields in Azure Table Storage. Complex types will serialize as json.</Description>
-    <Copyright>© Giovanni Galbo 2019</Copyright>
+    <Copyright>© Giovanni Galbo 2020</Copyright>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
     <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
     <PackageTags>table-storage azure-table-storage poco table-entities tableentity</PackageTags>
-    <PackageReleaseNotes>Added insert or replace functionality</PackageReleaseNotes>
+    <PackageReleaseNotes>Bug fixes, update nuget packages</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TableStorage.Abstractions" Version="2.3.0" />
-    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.1.4" />
+    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TableStorage.Abstractions\TableStorage.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

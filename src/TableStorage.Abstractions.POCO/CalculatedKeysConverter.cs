@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure.Cosmos.Table;
 using TableStorage.Abstractions.TableEntityConverters;
 
 namespace TableStorage.Abstractions.POCO

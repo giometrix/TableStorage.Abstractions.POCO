@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage.Table;
-using System.Reactive;
-using TableStorage.Abstractions.Models;
 using TableStorage.Abstractions.Store;
 
 namespace TableStorage.Abstractions.POCO.Tests
@@ -17,7 +16,8 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestInitialize]
 		public void CreateData()
 		{
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", e => e.CompanyId,
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				e => e.CompanyId,
 				e => e.Id);
 
 			var employee = new Employee
@@ -68,7 +68,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Name = "Test",
 				CompanyId = 99,
 				Id = 99,
-				Department = new Department { Id = 5, Name = "Test" }
+				Department = new Department {Id = 5, Name = "Test"}
 			};
 			tableStore.InsertOrReplace(employee);
 			Assert.AreEqual(4, tableStore.GetRecordCount());
@@ -83,14 +83,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Name = "Test",
 				CompanyId = 99,
 				Id = 99,
-				Department = new Department { Id = 5, Name = "Test" }
+				Department = new Department {Id = 5, Name = "Test"}
 			};
 			tableStore.Insert(employee);
 
 			employee.Name = "xxx";
 			tableStore.InsertOrReplace(employee);
 			Assert.AreEqual(4, tableStore.GetRecordCount());
-			Assert.AreEqual("xxx", tableStore.GetRecord(99,99).Name);
+			Assert.AreEqual("xxx", tableStore.GetRecord(99, 99).Name);
 		}
 
 		[TestMethod]
@@ -137,7 +137,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Name = "Test",
 				CompanyId = 99,
 				Id = 99,
-				Department = new Department { Id = 5, Name = "Test" }
+				Department = new Department {Id = 5, Name = "Test"}
 			};
 			await tableStore.InsertOrReplaceAsync(employee);
 			Assert.AreEqual(4, tableStore.GetRecordCount());
@@ -152,7 +152,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Name = "Test",
 				CompanyId = 99,
 				Id = 99,
-				Department = new Department { Id = 5, Name = "Test" }
+				Department = new Department {Id = 5, Name = "Test"}
 			};
 			await tableStore.InsertAsync(employee);
 
@@ -196,7 +196,8 @@ namespace TableStorage.Abstractions.POCO.Tests
 				Id = 99,
 				Department = new Department {Id = 5, Name = "Test"}
 			};
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", e => e.CompanyId,
+			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				e => e.CompanyId,
 				e => e.Id, ignoredProperties: e => e.Department);
 			tableStore.Insert(employee);
 			var record = tableStore.GetRecord(99, 99);
@@ -249,7 +250,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_records_by_partition_key_and_filter()
 		{
-			var records = tableStore.GetByPartitionKey("1", e=>e.Name == "Jim CEO");
+			var records = tableStore.GetByPartitionKey("1", e => e.Name == "Jim CEO");
 			Assert.AreEqual(1, records.Count());
 		}
 
@@ -263,7 +264,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_records_by_partition_key_and_filter_typed()
 		{
-			var records = tableStore.GetByPartitionKey(1, e=>e.Name == "Jim CEO");
+			var records = tableStore.GetByPartitionKey(1, e => e.Name == "Jim CEO");
 			Assert.AreEqual(1, records.Count());
 		}
 
@@ -277,7 +278,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public async Task get_records_by_partition_key_and_filter_async()
 		{
-			var records = await tableStore.GetByPartitionKeyAsync("1", e=>e.Name == "Jim CEO");
+			var records = await tableStore.GetByPartitionKeyAsync("1", e => e.Name == "Jim CEO");
 			Assert.AreEqual(1, records.Count());
 		}
 
@@ -305,7 +306,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_records_by_partition_key_and_filter_paged()
 		{
-			var records = tableStore.GetByPartitionKeyPaged("1", e=>e.Name == "Jim CEO", 1);
+			var records = tableStore.GetByPartitionKeyPaged("1", e => e.Name == "Jim CEO", 1);
 			Assert.AreEqual(1, records.Items.Count());
 
 			// this is a weird side effect due to filtering being done OUTSIDE of table storage.....
@@ -313,8 +314,8 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var token = records.ContinuationToken;
 			records = tableStore.GetByPartitionKeyPaged("1", e => e.Name == "Jim CEO", 1, token);
 
-			
-			Assert.AreEqual(0, records.Items.Count); 
+
+			Assert.AreEqual(0, records.Items.Count);
 		}
 
 
@@ -346,6 +347,17 @@ namespace TableStorage.Abstractions.POCO.Tests
 		{
 			var records = await tableStore.GetByPartitionKeyPagedAsync("1", 1);
 			Assert.AreEqual(1, records.Items.Count());
+		}
+
+		[TestMethod]
+		public async Task get_records_by_partition_key_paged_async_does_not_repeat_results()
+		{
+			var records = await tableStore.GetByPartitionKeyPagedAsync("1", 1);
+			var names = new List<string>();
+			names.AddRange(records.Items.Select(r => r.Name));
+			var records2 = await tableStore.GetByPartitionKeyPagedAsync("1", 1, records.ContinuationToken);
+			names.AddRange(records2.Items.Select(r => r.Name));
+			Assert.AreEqual(2, names.Distinct().Count());
 		}
 
 		[TestMethod]
@@ -395,7 +407,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_records_by_row_key_and_filter()
 		{
-			var records = tableStore.GetByRowKey("1", e=>e.Name.Contains("Jim"));
+			var records = tableStore.GetByRowKey("1", e => e.Name.Contains("Jim"));
 
 			Assert.AreEqual(1, records.Count());
 		}
@@ -410,7 +422,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_records_by_row_key_and_filter_typed()
 		{
-			var records = tableStore.GetByRowKey(1, e=>e.Name.Contains("Jim"));
+			var records = tableStore.GetByRowKey(1, e => e.Name.Contains("Jim"));
 			Assert.AreEqual(1, records.Count());
 		}
 
@@ -432,7 +444,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_records_by_row_key_and_filtered_paged()
 		{
-			var records = tableStore.GetByRowKeyPaged("1", e=>e.Name.Contains("Jim"), 1);
+			var records = tableStore.GetByRowKeyPaged("1", e => e.Name.Contains("Jim"), 1);
 
 			Assert.AreEqual(1, records.Items.Count());
 
@@ -444,7 +456,6 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 
 			Assert.AreEqual(0, records.Items.Count);
-
 		}
 
 
@@ -463,7 +474,6 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 
 			Assert.AreEqual(0, records.Items.Count);
-
 		}
 
 		[TestMethod]
@@ -476,7 +486,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public async Task get_records_by_row_key_and_filter_async()
 		{
-			var records = await tableStore.GetByRowKeyAsync("1", e=>e.Name.Contains("Jim"));
+			var records = await tableStore.GetByRowKeyAsync("1", e => e.Name.Contains("Jim"));
 			Assert.AreEqual(1, records.Count());
 		}
 
@@ -513,7 +523,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void get_records_by_filter_paged()
 		{
-			var records = tableStore.GetRecordsByFilter(x => x.Name.Length > 0,0,1);
+			var records = tableStore.GetRecordsByFilter(x => x.Name.Length > 0, 0, 1);
 			Assert.AreEqual(1, records.Count());
 		}
 
@@ -521,45 +531,30 @@ namespace TableStorage.Abstractions.POCO.Tests
 		public void get_records_observable()
 		{
 			var observer = tableStore.GetAllRecordsObservable();
-			int count = 0;
-			observer.Subscribe(x =>
-			{
-				count++;
-			});
+			var count = 0;
+			observer.Subscribe(x => { count++; });
 
 			Assert.AreEqual(3, count);
-
-
 		}
 
 		[TestMethod]
 		public void get_records_filtered_observable()
 		{
-			var observer = tableStore.GetRecordsByFilterObservable(e=>e.Name.Contains("CEO"), 0, 10);
-			int count = 0;
-			observer.Subscribe(x =>
-			{
-				count++;
-			});
+			var observer = tableStore.GetRecordsByFilterObservable(e => e.Name.Contains("CEO"), 0, 10);
+			var count = 0;
+			observer.Subscribe(x => { count++; });
 
 			Assert.AreEqual(2, count);
-
-
 		}
 
 		[TestMethod]
 		public void get_records_filtered_observable_paged()
 		{
 			var observer = tableStore.GetRecordsByFilterObservable(e => e.Name.Contains("CEO"), 0, 1);
-			int count = 0;
-			observer.Subscribe(x =>
-			{
-				count++;
-			});
+			var count = 0;
+			observer.Subscribe(x => { count++; });
 
 			Assert.AreEqual(1, count);
-
-
 		}
 
 		[TestMethod]
@@ -585,7 +580,6 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 
 			Assert.AreEqual(0, records.Items.Count);
-
 		}
 
 		[TestMethod]
@@ -603,9 +597,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 
 			Assert.AreEqual(0, records.Items.Count);
-
 		}
-
 
 
 		[TestMethod]
@@ -699,12 +691,11 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 
 		[TestMethod]
-		[ExpectedException(typeof(Microsoft.WindowsAzure.Storage.StorageException))]
+		[ExpectedException(typeof(StorageException))]
 		public void delete_record_that_doesnt_exist()
 		{
-			var employee = new Employee { CompanyId = 11, Id = 100 };
+			var employee = new Employee {CompanyId = 11, Id = 100};
 			tableStore.Delete(employee);
-			
 		}
 
 
@@ -733,7 +724,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			await tableStore.DeleteUsingWildcardEtagAsync(employee);
 			Assert.AreEqual(2, tableStore.GetRecordCount());
 		}
-		
+
 		[TestMethod]
 		public void insert_record_with_fixed_partition_key()
 		{
@@ -743,26 +734,27 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",  keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true",
+				new TableStorageOptions());
 			var record = ts.GetRecord("SomeString", "1");
 
 			Assert.AreEqual("SomeString", record.PartitionKey);
 			Assert.AreEqual("1", record.RowKey);
 			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
-
 		}
-		
+
 		[TestMethod]
 		public void get_record_with_fixed_partition_key()
 		{
@@ -772,7 +764,8 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 			tableStore.DeleteTable();
 			tableStore.CreateTable();
 			var employee = new Employee
@@ -780,14 +773,14 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
 			var record = tableStore.GetRecord("SomeString", "1");
 			Assert.AreEqual(1, record.Id);
 		}
-		
+
 		[TestMethod]
 		public void get_record_with_fixed_partition_key_typed()
 		{
@@ -797,14 +790,15 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -816,15 +810,15 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestMethod]
 		public void insert_record_with_calculated_partition_key()
 		{
-
-			var pKeyMapper = new KeyMapper<Employee, int>(e=>"SomeString_"+e.CompanyId, pk => int.Parse(pk.Substring("SomeString_".Length)), e=>e.CompanyId, id=>"SomeString_"+id);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => "SomeString_" + e.CompanyId,
+				pk => int.Parse(pk.Substring("SomeString_".Length)), e => e.CompanyId, id => "SomeString_" + id);
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
-
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -832,30 +826,32 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true",
+				new TableStorageOptions());
 			var record = ts.GetRecord("SomeString_1", "1");
 
 			Assert.AreEqual("SomeString_1", record.PartitionKey);
 			Assert.AreEqual("1", record.RowKey);
 			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
-
 		}
 
 
 		[TestMethod]
 		public void get_record_with_calculated_partition_key()
 		{
-			var pKeyMapper = new KeyMapper<Employee, int>(e => "SomeString_" + e.CompanyId, pk => int.Parse(pk.Substring("SomeString_".Length)), e => e.CompanyId, id => "SomeString_" + id);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => "SomeString_" + e.CompanyId,
+				pk => int.Parse(pk.Substring("SomeString_".Length)), e => e.CompanyId, id => "SomeString_" + id);
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -863,7 +859,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -872,20 +868,21 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, record.CompanyId);
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
 
 
 		[TestMethod]
 		public void get_record_with_calculated_partition_key_typed()
 		{
-			var pKeyMapper = new KeyMapper<Employee, int>(e => "SomeString_" + e.CompanyId, pk => int.Parse(pk.Substring("SomeString_".Length)), e => e.CompanyId, id => "SomeString_" + id);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => "SomeString_" + e.CompanyId,
+				pk => int.Parse(pk.Substring("SomeString_".Length)), e => e.CompanyId, id => "SomeString_" + id);
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -893,7 +890,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -902,20 +899,20 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, record.CompanyId);
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
 
 
 		[TestMethod]
 		public void insert_record_with_fixed_row_key()
 		{
-
-			var pKeyMapper = new KeyMapper<Employee, int>(e =>e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id =>id.ToString());
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId,
+				id => id.ToString());
 			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -923,65 +920,67 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true",
+				new TableStorageOptions());
 			var record = ts.GetRecord("1", "UserRecord");
 
 			Assert.AreEqual("1", record.PartitionKey);
 			Assert.AreEqual("UserRecord", record.RowKey);
 			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
-
 		}
 
 
 		[TestMethod]
 		public void get_record_with_fixed_row_key()
 		{
-
-			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId,
+				id => id.ToString());
 			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
-			
+
 			var record = tableStore.GetRecord("1", "UserRecord");
 
 			Assert.AreEqual(1, record.CompanyId);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
 
-		
+
 		[TestMethod]
 		public void get_record_with_fixed_row_key_typed()
 		{
-			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId,
+				id => id.ToString());
 			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -990,25 +989,25 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			Assert.AreEqual(1, record.CompanyId);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
 
 		[TestMethod]
 		public void get_record_with_fixed_row_key_typed_where_partition_key_is_string()
 		{
-			var pKeyMapper = new KeyMapper<Employee, string>(e => e.Name, x=>x, e => e.Name, x=>x);
+			var pKeyMapper = new KeyMapper<Employee, string>(e => e.Name, x => x, e => e.Name, x => x);
 			var rKeyMapper = new FixedKeyMapper<Employee, int>("UserRecord");
 
 			var keysConverter = new CalculatedKeysConverter<Employee, string, int>(pKeyMapper, rKeyMapper);
 
-			var ts = new PocoTableStore<Employee, string, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			var ts = new PocoTableStore<Employee, string, int>("TestEmployee", "UseDevelopmentStorage=true",
+				keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			ts.Insert(employee);
 
@@ -1017,20 +1016,20 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			Assert.AreEqual(1, record.CompanyId);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
 
 		[TestMethod]
 		public void insert_record_with_calculated_row_key()
 		{
-
-			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
-			var rKeyMapper = new KeyMapper<Employee, int>(e=>"UserRecord_" + e.Id, id=> int.Parse(id.Substring("UserRecord_".Length)), e=>e.Id, id=>"UserRecord_" + id);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId,
+				id => id.ToString());
+			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id,
+				id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
-
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -1038,30 +1037,32 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true",
+				new TableStorageOptions());
 			var record = ts.GetRecord("1", "UserRecord_1");
 
 			Assert.AreEqual("1", record.PartitionKey);
 			Assert.AreEqual("UserRecord_1", record.RowKey);
 			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
-
 		}
 
 
 		[TestMethod]
 		public void get_record_with_calculated_row_key()
 		{
-			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
-			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id, id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId,
+				id => id.ToString());
+			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id,
+				id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
-
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -1069,7 +1070,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -1079,20 +1080,21 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, record.CompanyId);
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
 
 
 		[TestMethod]
 		public void get_record_with_calculated_row_key_typed()
 		{
-			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id => id.ToString());
-			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id, id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.CompanyId.ToString(), int.Parse, e => e.CompanyId,
+				id => id.ToString());
+			var rKeyMapper = new KeyMapper<Employee, int>(e => "UserRecord_" + e.Id,
+				id => int.Parse(id.Substring("UserRecord_".Length)), e => e.Id, id => "UserRecord_" + id);
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
-
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -1100,7 +1102,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 22,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -1110,9 +1112,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, record.CompanyId);
 			Assert.AreEqual(22, record.Id);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
-
 
 
 		[TestMethod]
@@ -1124,14 +1124,15 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 
 			var employee2 = new Employee
@@ -1139,19 +1140,18 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 55,
 				Name = "Mr. Ted QA",
-				Department = new Department { Id = 27, Name = "IT" }
+				Department = new Department {Id = 27, Name = "IT"}
 			};
 
-			tableStore.Insert(new Employee[]{employee, employee2});
+			tableStore.Insert(new[] {employee, employee2});
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true",
+				new TableStorageOptions());
 			var records = ts.GetAllRecords();
 
 			Assert.AreEqual(5, records.Count());
-			Assert.IsTrue(records.Any(r=>r.RowKey == "55" && r.Properties["Name"].StringValue == "Mr. Ted QA"));
-
+			Assert.IsTrue(records.Any(r => r.RowKey == "55" && r.Properties["Name"].StringValue == "Mr. Ted QA"));
 		}
-
 
 
 		[TestMethod]
@@ -1160,21 +1160,23 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
 			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
 
-			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
-			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}",
+				pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}",
+				pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var keysConverter2 = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
+			var tableStore2 =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
 
-
-			
 
 			tableStore2.DeleteTable();
 			tableStore2.CreateTable();
@@ -1184,7 +1186,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 142,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 			tableStore2.Insert(employee);
@@ -1205,18 +1207,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
 			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
 
-			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
-			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}",
+				pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}",
+				pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var keysConverter2 = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
+			var tableStore2 =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
 
 
 			tableStore2.DeleteTable();
@@ -1227,7 +1233,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 142,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 			tableStore2.Insert(employee);
@@ -1253,18 +1259,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
 			var anotherDate = new DateTime(2017, 9, 1).ToString("yyyyMMdd");
 
-			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
-			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}",
+				pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+			var pKeyMapper2 = new KeyMapper<Employee, int>(e => $"{anotherDate}_{e.CompanyId}",
+				pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{anotherDate}_{id}");
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var keysConverter2 = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper2, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
+			var tableStore2 =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter2);
 
 
 			tableStore2.DeleteTable();
@@ -1275,7 +1285,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 142,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 			tableStore2.Insert(employee);
@@ -1299,44 +1309,44 @@ namespace TableStorage.Abstractions.POCO.Tests
 		public void delete_record_with_calculated_partition_key_using_date()
 		{
 			var date = new DateTime(2017, 8, 31).ToString("yyyyMMdd");
-		
 
-			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}", pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
+
+			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{date}_{e.CompanyId}",
+				pk => int.Parse(pk.Substring("yyyyMMdd_".Length)), e => e.CompanyId, id => $"{date}_{id}");
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 142,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
 			tableStore.Delete(employee);
 
 			Assert.AreEqual(3, tableStore.GetRecordCount());
-
 		}
 
 
 		[TestMethod]
 		public void insert_record_with_calculated_partition_key_from_multiple_properties()
 		{
-
-
 			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 
 			var employee = new Employee
@@ -1344,37 +1354,37 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
-			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true", new TableStorageOptions());
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee", "UseDevelopmentStorage=true",
+				new TableStorageOptions());
 			var record = ts.GetRecord("1.22", "1");
 
 			Assert.AreEqual("1.22", record.PartitionKey);
 			Assert.AreEqual("1", record.RowKey);
 			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
-
 		}
 
 		[TestMethod]
 		public void get_record_with_calculated_partition_key_from_multiple_properties()
 		{
-
 			var pKeyMapper = new KeyMapper<Employee, int>(e => $"{e.CompanyId}.{e.Department.Id}", null, null, null);
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -1383,7 +1393,6 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual(22, record.Department.Id);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
 
 		[TestMethod]
@@ -1395,14 +1404,15 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
 
 			var employee = new Employee
 			{
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore.Insert(employee);
 
@@ -1415,29 +1425,29 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual(22, record.Department.Id);
 			Assert.AreEqual("Ted", record.Name);
-
 		}
 
 
 		[TestMethod]
 		public void get_record_with_calculated_partition_key_from_multiple_properties_using_class_as_key()
 		{
-			
-
-			var pKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}", key =>
-			{
-				var parts = key.Split('.');
-				var companyId = int.Parse(parts[0]);
-				var departmentId = int.Parse(parts[1]);
-				return new PartitionKey(companyId, departmentId);
-			}, key=>$"{key.CompanyId}.{key.DepartmentId}");
+			var pKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}",
+				key =>
+				{
+					var parts = key.Split('.');
+					var companyId = int.Parse(parts[0]);
+					var departmentId = int.Parse(parts[1]);
+					return new PartitionKey(companyId, departmentId);
+				}, key => $"{key.CompanyId}.{key.DepartmentId}");
 
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
 
 			var keysConverter = new CalculatedKeysConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			var tableStore2 =
+				new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true",
+					keysConverter);
 
 
 			var employee = new Employee
@@ -1445,7 +1455,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore2.Insert(employee);
 
@@ -1454,22 +1464,20 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual(22, record.Department.Id);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
-
 		}
-
 
 
 		[TestMethod]
 		public void update_record_with_calculated_partition_key_from_multiple_properties_using_class_as_key()
 		{
-
-			var pKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}", key =>
-			{
-				var parts = key.Split('.');
-				var companyId = int.Parse(parts[0]);
-				var departmentId = int.Parse(parts[1]);
-				return new PartitionKey(companyId, departmentId);
-			}, key => $"{key.CompanyId}.{key.DepartmentId}");
+			var pKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}",
+				key =>
+				{
+					var parts = key.Split('.');
+					var companyId = int.Parse(parts[0]);
+					var departmentId = int.Parse(parts[1]);
+					return new PartitionKey(companyId, departmentId);
+				}, key => $"{key.CompanyId}.{key.DepartmentId}");
 
 			var rKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
 				id => id.ToString());
@@ -1477,7 +1485,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			var keysConverter = new CalculatedKeysConverter<Employee, PartitionKey, int>(pKeyMapper, rKeyMapper);
 
-			var tableStore2 = new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+			var tableStore2 =
+				new PocoTableStore<Employee, PartitionKey, int>("TestEmployee", "UseDevelopmentStorage=true",
+					keysConverter);
 
 
 			var employee = new Employee
@@ -1485,7 +1495,7 @@ namespace TableStorage.Abstractions.POCO.Tests
 				CompanyId = 1,
 				Id = 1,
 				Name = "Mr. Jim CEO",
-				Department = new Department { Id = 22, Name = "Executive" }
+				Department = new Department {Id = 22, Name = "Executive"}
 			};
 			tableStore2.Insert(employee);
 
@@ -1494,12 +1504,11 @@ namespace TableStorage.Abstractions.POCO.Tests
 			tableStore2.Update(employee);
 
 			var record = tableStore2.GetRecord(
-			new PartitionKey(1,22), 1 );
+				new PartitionKey(1, 22), 1);
 
 			Assert.AreEqual(1, record.Id);
 			Assert.AreEqual(22, record.Department.Id);
 			Assert.AreEqual("Ted", record.Name);
-
 		}
 
 		[TestCleanup]
@@ -1507,6 +1516,5 @@ namespace TableStorage.Abstractions.POCO.Tests
 		{
 			tableStore.DeleteTable();
 		}
-		
 	}
 }
