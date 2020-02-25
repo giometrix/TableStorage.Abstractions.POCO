@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.3.0</Version>
+    <Version>2.3.1</Version>
     <Authors>Giovanni Galbo</Authors>
     <Company>Giovanni Galbo</Company>
     <Description>A repository wrapper for Azure Table Storage that uses POCOs (Plain Old CLR Objects) instead of objects that implemeent ITableEntity.
@@ -22,15 +22,15 @@ The library will convert simple properties to fields in Azure Table Storage. Com
     <PackageReleaseNotes>update nuget packages</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <AssemblyVersion>2.3.0.0</AssemblyVersion>
-    <FileVersion>2.3.0.0</FileVersion>
+    <AssemblyVersion>2.3.1.0</AssemblyVersion>
+    <FileVersion>2.3.1.0</FileVersion>
     <PackageIcon>xtensible-x.png</PackageIcon>
     <PackageIconUrl />
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="TableStorage.Abstractions" Version="3.1.0" />
-    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.1.7" />
+    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.1.8" />
   </ItemGroup>
 
   <ItemGroup>
