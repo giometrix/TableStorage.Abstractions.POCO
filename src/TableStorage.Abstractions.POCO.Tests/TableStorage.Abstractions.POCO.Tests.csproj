@@ -277,8 +277,8 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="TableStorage.Abstractions.TableEntityConverters, Version=1.1.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TableStorage.Abstractions.TableEntityConverters.1.1.7\lib\net462\TableStorage.Abstractions.TableEntityConverters.dll</HintPath>
+    <Reference Include="TableStorage.Abstractions, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TableStorage.Abstractions.3.1.0\lib\netstandard2.0\TableStorage.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Useful.Extensions, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Useful.Extensions.3.0.1\lib\netstandard2.0\Useful.Extensions.dll</HintPath>
@@ -300,10 +300,6 @@
     <ProjectReference Include="..\TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj">
       <Project>{3f3329e7-6482-42bd-9d9d-fa6053ac7dce}</Project>
       <Name>TableStorage.Abstractions.POCO</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TableStorage.Abstractions\TableStorage.Abstractions.csproj">
-      <Project>{84e1dcd8-15d6-4d53-9326-4d2a1f086e69}</Project>
-      <Name>TableStorage.Abstractions</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
