@@ -34,7 +34,7 @@ The library will convert simple properties to fields in Azure Table Storage. Com
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\Users\ggalb\OneDrive\Pictures\Saved pictures\xtensible-x.png">
+    <None Include="xtensible-x.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
