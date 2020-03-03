@@ -59,6 +59,25 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(4, tableStore.GetRecordCount());
 		}
 
+		[TestMethod]
+		public void insert_record_with_timestamp_ignores_user_provided_timestamp_value()
+		{
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99445,
+				Id = 991122,
+				Department = new Department { Id = 5, Name = "Test" },
+				Timestamp = new DateTimeOffset(2001, 1, 1, 1, 1, 1, TimeSpan.Zero)
+			};
+			tableStore.Insert(employee);
+
+			var fromDb = tableStore.GetRecord(99445, 991122);
+
+			Assert.AreNotEqual(employee.Timestamp, fromDb.Timestamp);
+
+		}
+
 
 		[TestMethod]
 		public void insert_or_replace_record_inserts_when_record_is_new()
@@ -209,6 +228,13 @@ namespace TableStorage.Abstractions.POCO.Tests
 		{
 			var record = tableStore.GetRecord("1", "1");
 			Assert.IsNotNull(record);
+		}
+
+		[TestMethod]
+		public void get_record_populates_timestamp()
+		{
+			var record = tableStore.GetRecord("1", "1");
+			Assert.AreNotEqual(default(DateTimeOffset), record.Timestamp);
 		}
 
 		[TestMethod]
@@ -402,6 +428,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 		{
 			var records = tableStore.GetByRowKey("1");
 			Assert.AreEqual(2, records.Count());
+		}
+
+		[TestMethod]
+		public void get_records_by_row_key_contain_hydrated_timestamp()
+		{
+			var records = tableStore.GetByRowKey("1");
+			foreach (var record in records)
+			{
+				Assert.AreNotEqual(default(DateTimeOffset), record.Timestamp);
+			}
 		}
 
 		[TestMethod]
@@ -633,6 +669,26 @@ namespace TableStorage.Abstractions.POCO.Tests
 			tableStore.Update(employee);
 			var record = tableStore.GetRecord(1, 1);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
+		}
+
+		[TestMethod]
+		public void update_record_updates_timestamp()
+		{
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.Update(employee);
+			var record = tableStore.GetRecord(1, 1);
+			var timestamp1 = record.Timestamp;
+			Task.Delay(5).Wait();
+			tableStore.Update(employee);
+			record = tableStore.GetRecord(1, 1);
+			var timestamp2 = record.Timestamp;
+			Assert.AreNotEqual(timestamp1, timestamp2);
 		}
 
 		[TestMethod]

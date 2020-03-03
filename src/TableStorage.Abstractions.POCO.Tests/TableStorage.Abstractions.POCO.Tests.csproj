@@ -40,13 +40,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FluentValidation, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7de548da2fbae0f0, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentValidation.8.6.1\lib\net45\FluentValidation.dll</HintPath>
+      <HintPath>..\packages\FluentValidation.8.6.2\lib\net45\FluentValidation.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.Cosmos.Table, Version=1.0.6.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.Cosmos.Table.1.0.6\lib\netstandard2.0\Microsoft.Azure.Cosmos.Table.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Azure.DocumentDB.Core, Version=2.9.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Azure.DocumentDB.Core.2.9.3\lib\netstandard1.6\Microsoft.Azure.DocumentDB.Core.dll</HintPath>
+    <Reference Include="Microsoft.Azure.DocumentDB.Core, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Azure.DocumentDB.Core.2.10.0\lib\netstandard1.6\Microsoft.Azure.DocumentDB.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=3.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.3.0.5\lib\net461\Microsoft.Azure.KeyVault.Core.dll</HintPath>
@@ -305,8 +305,8 @@
     <Reference Include="TableStorage.Abstractions, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\TableStorage.Abstractions.3.1.0\lib\netstandard2.0\TableStorage.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="TableStorage.Abstractions.TableEntityConverters, Version=1.1.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\TableStorage.Abstractions.TableEntityConverters.1.1.8\lib\net462\TableStorage.Abstractions.TableEntityConverters.dll</HintPath>
+    <Reference Include="TableStorage.Abstractions.TableEntityConverters, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TableStorage.Abstractions.TableEntityConverters.1.2.0\lib\net462\TableStorage.Abstractions.TableEntityConverters.dll</HintPath>
     </Reference>
     <Reference Include="Useful.Extensions, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Useful.Extensions.3.0.1\lib\netstandard2.0\Useful.Extensions.dll</HintPath>
@@ -339,9 +339,9 @@
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.1.0\build\net45\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.1.0\build\net45\MSTest.TestAdapter.props'))" />
     <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.1.0\build\net45\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.1.0\build\net45\MSTest.TestAdapter.targets'))" />
     <Error Condition="!Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Azure.DocumentDB.Core.2.9.3\build\Microsoft.Azure.DocumentDB.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Azure.DocumentDB.Core.2.9.3\build\Microsoft.Azure.DocumentDB.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Azure.DocumentDB.Core.2.10.0\build\Microsoft.Azure.DocumentDB.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Azure.DocumentDB.Core.2.10.0\build\Microsoft.Azure.DocumentDB.Core.targets'))" />
   </Target>
   <Import Project="..\packages\MSTest.TestAdapter.2.1.0\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.1.0\build\net45\MSTest.TestAdapter.targets')" />
   <Import Project="..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" />
-  <Import Project="..\packages\Microsoft.Azure.DocumentDB.Core.2.9.3\build\Microsoft.Azure.DocumentDB.Core.targets" Condition="Exists('..\packages\Microsoft.Azure.DocumentDB.Core.2.9.3\build\Microsoft.Azure.DocumentDB.Core.targets')" />
+  <Import Project="..\packages\Microsoft.Azure.DocumentDB.Core.2.10.0\build\Microsoft.Azure.DocumentDB.Core.targets" Condition="Exists('..\packages\Microsoft.Azure.DocumentDB.Core.2.10.0\build\Microsoft.Azure.DocumentDB.Core.targets')" />
 </Project>
