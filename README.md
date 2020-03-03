@@ -198,3 +198,10 @@ var records = tableStore.GetByPartitionKey(1, e=>e.Name == "Jim CEO");
 ```
 
 In this example we get all records in parition "1" where the name is "Jim CEO". 
+
+#### Timestamp
+Azure Table Storage entities always have a timestamp.  If your POCO has a field named Timestamp, that is a `DateTimeOffset`, `DateTime` or `String`, then this property will automatically be hydrated wit the timestamp provided by Azure Table Storage.
+
+Modifications to the Timestamp property do not get persisited.  This is exactly how it works with the Azure Table Storage SDK.
+
+Considerations for taking a similar approach to ETag are being considered.

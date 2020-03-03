@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.3.1</Version>
+    <Version>2.4</Version>
     <Authors>Giovanni Galbo</Authors>
     <Company>Giovanni Galbo</Company>
     <Description>A repository wrapper for Azure Table Storage that uses POCOs (Plain Old CLR Objects) instead of objects that implemeent ITableEntity.
@@ -19,18 +19,18 @@ The library will convert simple properties to fields in Azure Table Storage. Com
     <PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
     <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
     <PackageTags>table-storage azure-table-storage poco table-entities tableentity</PackageTags>
-    <PackageReleaseNotes>update nuget packages</PackageReleaseNotes>
+    <PackageReleaseNotes>auto-populate timestamp field</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <AssemblyVersion>2.3.1.0</AssemblyVersion>
-    <FileVersion>2.3.1.0</FileVersion>
+    <AssemblyVersion>2.4.0.0</AssemblyVersion>
+    <FileVersion>2.4.0.0</FileVersion>
     <PackageIcon>xtensible-x.png</PackageIcon>
     <PackageIconUrl />
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="TableStorage.Abstractions" Version="3.1.0" />
-    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.1.8" />
+    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
