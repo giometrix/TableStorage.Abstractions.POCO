@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TableStorage.Abstractions.POCO.SecondaryIndexes\TableStorage.Abstractions.POCO.SecondaryIndexes.csproj" />
+    <ProjectReference Include="..\..\src\TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj" />
   </ItemGroup>
 
 </Project>

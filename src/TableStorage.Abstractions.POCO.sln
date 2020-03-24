@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO.Tests", "TableStorage.Abstractions.POCO.Tests\TableStorage.Abstractions.POCO.Tests.csproj", "{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.POCO", "TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj", "{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.POCO.SecondaryIndexes", "TableStorage.Abstractions.POCO.SecondaryIndexes\TableStorage.Abstractions.POCO.SecondaryIndexes.csproj", "{74C17B67-BD14-4E6F-A046-9971F6F19D48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO.SecondaryIndexes.Tests", "TableStorage.Abstractions.POCO.SecondaryIndexes.Tests\TableStorage.Abstractions.POCO.SecondaryIndexes.Tests.csproj", "{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.POCO.SecondaryIndexes.Tests", "..\tests\TableStorage.Abstractions.POCO.SecondaryIndexes.Tests\TableStorage.Abstractions.POCO.SecondaryIndexes.Tests.csproj", "{FE11BC63-55E3-4D56-B730-98CF5EF9D03F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO.Tests", "..\tests\TableStorage.Abstractions.POCO.Tests\TableStorage.Abstractions.POCO.Tests.csproj", "{005D8280-599C-4952-BBAB-EDAF51BFF70F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3DED78B4-7F47-480C-B2F7-DA569D14C2EC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -29,10 +25,14 @@ Global
 		{74C17B67-BD14-4E6F-A046-9971F6F19D48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74C17B67-BD14-4E6F-A046-9971F6F19D48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74C17B67-BD14-4E6F-A046-9971F6F19D48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE11BC63-55E3-4D56-B730-98CF5EF9D03F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE11BC63-55E3-4D56-B730-98CF5EF9D03F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE11BC63-55E3-4D56-B730-98CF5EF9D03F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE11BC63-55E3-4D56-B730-98CF5EF9D03F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{005D8280-599C-4952-BBAB-EDAF51BFF70F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{005D8280-599C-4952-BBAB-EDAF51BFF70F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{005D8280-599C-4952-BBAB-EDAF51BFF70F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{005D8280-599C-4952-BBAB-EDAF51BFF70F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
