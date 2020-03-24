@@ -93,7 +93,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 		}
 
 		[TestMethod]
-		public async Task insert_record_by_index()
+		public async Task get_record_by_index()
 		{
 			var employee = new Employee
 			{
@@ -108,7 +108,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 		}
 
 		[TestMethod]
-		public async Task insert_record_by_index_as_string()
+		public async Task get_record_by_index_as_string()
 		{
 			var employee = new Employee
 			{
@@ -123,7 +123,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 		}
 
 		[TestMethod]
-		public async Task insert_record_by_index_async()
+		public async Task get_record_by_index_async()
 		{
 			var employee = new Employee
 			{
@@ -139,7 +139,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 
 
 		[TestMethod]
-		public async Task insert_record_by_index_as_string_async()
+		public async Task get_record_by_index_as_string_async()
 		{
 			var employee = new Employee
 			{
