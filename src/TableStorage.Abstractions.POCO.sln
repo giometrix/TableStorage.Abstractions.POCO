@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.POCO", "TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj", "{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.POCO.SecondaryIndexes", "TableStorage.Abstractions.POCO.SecondaryIndexes\TableStorage.Abstractions.POCO.SecondaryIndexes.csproj", "{74C17B67-BD14-4E6F-A046-9971F6F19D48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO.SecondaryIndexes.Tests", "TableStorage.Abstractions.POCO.SecondaryIndexes.Tests\TableStorage.Abstractions.POCO.SecondaryIndexes.Tests.csproj", "{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F3329E7-6482-42BD-9D9D-FA6053AC7DCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74C17B67-BD14-4E6F-A046-9971F6F19D48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74C17B67-BD14-4E6F-A046-9971F6F19D48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74C17B67-BD14-4E6F-A046-9971F6F19D48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74C17B67-BD14-4E6F-A046-9971F6F19D48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE57A509-D9DE-41D1-BFF9-FD6B013F6B14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
