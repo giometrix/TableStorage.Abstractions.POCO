@@ -9,7 +9,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 {
 	public static class PocoStoreIndexer
 	{
-		private static readonly Dictionary<string, object> _indexes = new Dictionary<string, object>();
+		private static readonly Dictionary<string, dynamic> _indexes = new Dictionary<string, dynamic>();
 
 		private static object _indexLock = new object();
 
@@ -33,7 +33,6 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 				{
 					throw new ArgumentException($"{indexName} has already been added");
 				}
-
 				_indexes[indexName] = indexStore;
 				tableStore.OnRecordInsertedOrUpdated += indexStore.InsertOrReplace;
 				tableStore.OnRecordInsertedOrUpdatedAsync += indexStore.InsertOrReplaceAsync;
@@ -459,18 +458,19 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 			{
 				try
 				{
-					dynamic indexStore = _indexes[indexName];
+					var indexStore = _indexes[indexName];
 					do
 					{
-						var result = await indexStore.GetAllRecordsPagedAsync(1000, pageToken);
+						var result = await tableStore.GetAllRecordsPagedAsync(1000, pageToken);
 						pageToken = result.ContinuationToken;
-
+						var insertOrReplaceAsync = indexStore.GetType().GetMethod("InsertOrReplaceAsync");
 						if (result.Items.Count > 0)
 						{
 							foreach (var record in result.Items)
 							{
 								await semaphore.WaitAsync(TimeSpan.FromSeconds(20));
-								Task task = indexStore.InsertOrReplaceAsync(record);
+								//Task task = indexStore.InsertOrReplaceAsync(record); //this line worked in the unit tests but not in a console app.  Not sure why.
+								var task = (Task) insertOrReplaceAsync.Invoke(indexStore, new object[] { record });
 								task.ContinueWith(r =>
 								{
 									if (r.IsFaulted)

@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.POCO.SecondaryIndexes.Tests", "..\tests\TableStorage.Abstractions.POCO.SecondaryIndexes.Tests\TableStorage.Abstractions.POCO.SecondaryIndexes.Tests.csproj", "{FE11BC63-55E3-4D56-B730-98CF5EF9D03F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage.Abstractions.POCO.Tests", "..\tests\TableStorage.Abstractions.POCO.Tests\TableStorage.Abstractions.POCO.Tests.csproj", "{005D8280-599C-4952-BBAB-EDAF51BFF70F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Abstractions.POCO.Tests", "..\tests\TableStorage.Abstractions.POCO.Tests\TableStorage.Abstractions.POCO.Tests.csproj", "{005D8280-599C-4952-BBAB-EDAF51BFF70F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
