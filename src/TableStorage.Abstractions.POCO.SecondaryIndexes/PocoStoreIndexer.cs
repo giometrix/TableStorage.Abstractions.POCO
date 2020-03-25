@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Documents;
 using TableStorage.Abstractions.Models;
 
@@ -38,8 +39,29 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 				tableStore.OnRecordInsertedOrUpdatedAsync += indexStore.InsertOrReplaceAsync;
 				tableStore.OnRecordsInserted += indexStore.Insert;
 				tableStore.OnRecordsInsertedAsync += indexStore.InsertAsync;
-				tableStore.OnRecordDeleted += indexStore.Delete;
-				tableStore.OnRecordDeletedAsync += indexStore.DeleteAsync;
+				tableStore.OnRecordDeleted += obj =>
+				{
+					try
+					{
+						indexStore.Delete(obj);
+					}
+					catch (StorageException e) when (e.Message == "Not Found")
+					{
+						// if the index row wasn't there there is nothing to do
+					}
+				};
+				tableStore.OnRecordDeletedAsync += async obj =>
+				{
+					try
+					{
+						await indexStore.DeleteAsync(obj);
+					}
+					catch (StorageException e) when (e.Message == "Not Found")
+					{
+						// if the index row wasn't there there is nothing to do
+					}
+
+				};
 				tableStore.OnTableDeleted += (name, table) =>
 				{
 					lock (_indexLock)
