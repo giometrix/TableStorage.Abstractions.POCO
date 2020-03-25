@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableStorage.Abstractions.Store;
+using Xtensible.Time;
 
 namespace TableStorage.Abstractions.POCO.Tests
 {
@@ -16,6 +17,8 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestInitialize]
 		public void CreateData()
 		{
+			Clock.Default = new MockClock(new DateTimeOffset(2020,7,1,11,42,0, TimeSpan.Zero));
+
 			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
 				e => e.CompanyId,
 				e => e.Id);
@@ -1838,6 +1841,148 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(22, record.Department.Id);
 			Assert.AreEqual("Ted", record.Name);
 		}
+
+		[TestMethod]
+		public void insert_record_with_sequential_row_key()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(false);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+			var records = tableStore.GetByPartitionKey(242443);
+			
+			Assert.AreEqual(1,records.Count());
+		}
+
+		[TestMethod]
+		public void insert_record_with_sequential_row_key_sorts_correctly()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(false);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "1",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+
+			Clock.AsMockClock().Adjust(1000);
+
+			employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "2",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "3",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			var records = tableStore.GetByPartitionKey(242443).ToList();
+
+			Assert.AreEqual(3, records.Count());
+
+			Assert.AreEqual("1", records[0].Name);
+			Assert.AreEqual("2", records[1].Name);
+			Assert.AreEqual("3", records[2].Name);
+		}
+
+		[TestMethod]
+		public void insert_record_with_reverse_sequential_row_key_sorts_correctly()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "1",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+
+			Clock.AsMockClock().Adjust(1000);
+
+			employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "2",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "3",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			var records = tableStore.GetByPartitionKey(242443).ToList();
+
+			Assert.AreEqual(3, records.Count());
+
+			Assert.AreEqual("3", records[0].Name);
+			Assert.AreEqual("2", records[1].Name);
+			Assert.AreEqual("1", records[2].Name);
+		}
+
 
 		[TestCleanup]
 		public void Cleanup()

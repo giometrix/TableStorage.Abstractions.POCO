@@ -406,6 +406,100 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 
 		}
 
+
+		[TestMethod]
+		public async Task insert_record_with_secondary_index_using_sequential_key_mapper()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			var logStore =
+				new PocoTableStore<Employee, int, int>("IXLogIndex", "UseDevelopmentStorage=true", keysConverter);
+
+			TableStore.AddIndex("Log", logStore);
+
+
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			
+			await TableStore.InsertAsync(employee);
+
+			var records = TableStore.GetByPartitionKey(99);
+			Assert.AreEqual(1, records.Count());
+
+		}
+
+		[TestMethod]
+		public async Task update_record_with_secondary_index_using_sequential_key_mapper()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			var logStore =
+				new PocoTableStore<Employee, int, int>("IXLogIndex", "UseDevelopmentStorage=true", keysConverter);
+
+			TableStore.AddIndex("Log", logStore);
+
+
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			await TableStore.InsertAsync(employee);
+			employee.Name = "XXX";
+			await TableStore.UpdateAsync(employee);
+
+			var records = await TableStore.GetByIndexPartitionKeyAsync("Log", 99);
+			Assert.AreEqual(2, records.Count());
+
+		}
+
+		[TestMethod]
+		public async Task delete_record_with_secondary_index_using_sequential_key_mapper()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			var logStore =
+				new PocoTableStore<Employee, int, int>("IXLogIndex", "UseDevelopmentStorage=true", keysConverter);
+
+			TableStore.AddIndex("Log", logStore);
+
+
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			await TableStore.InsertAsync(employee);
+			await TableStore.DeleteAsync(employee);
+
+			var records = await TableStore.GetByIndexPartitionKeyAsync("Log", 99);
+			Assert.AreEqual(1, records.Count());
+
+		}
+
 		[TestMethod]
 		public async Task reindex()
 		{
