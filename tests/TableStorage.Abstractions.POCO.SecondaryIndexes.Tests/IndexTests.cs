@@ -405,5 +405,32 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 			Assert.IsNull(p.ContinuationToken);
 
 		}
+
+		[TestMethod]
+		public async Task reindex()
+		{
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			var employee2 = new Employee
+			{
+				Name = "Test2",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			await TableStore.InsertAsync(employee);
+			await TableStore.InsertAsync(employee2);
+
+			int count = 0;
+
+			await TableStore.ReindexAsync("Name", maxDegreeOfParallelism: 20, recordsIndexedCallback: i=>count = i);
+
+			Assert.AreEqual(2, count);
+		}
 	}
 }

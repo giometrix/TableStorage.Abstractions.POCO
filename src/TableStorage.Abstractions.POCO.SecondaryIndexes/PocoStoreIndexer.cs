@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using TableStorage.Abstractions.Models;
@@ -432,6 +433,71 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 			catch (KeyNotFoundException e)
 			{
 				throw new ArgumentException($"{indexName} is not a defined secondary index");
+			}
+		}
+
+
+		/// <summary>
+		/// Reindexes a table.  You will need to call this for existing tables that have never had an index, or if things get out of sync.  This can take a while.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="TPartitionKey">The type of the t partition key.</typeparam>
+		/// <typeparam name="TRowKey">The type of the t row key.</typeparam>
+		/// <param name="tableStore">The table store.</param>
+		/// <param name="indexName">Name of the index.</param>
+		/// <param name="maxDegreeOfParallelism">The maximum degree of parallelism.</param>
+		/// <param name="recordsIndexedCallback">The records indexed callback.</param>
+		/// <param name="failedIndexCallback">The failed index callback.</param>
+		/// <exception cref="ArgumentException"></exception>
+		public static async Task ReindexAsync<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, int? maxDegreeOfParallelism = null, Action<int> recordsIndexedCallback = null, Action<T, Exception> failedIndexCallback = null)
+		{
+			maxDegreeOfParallelism = maxDegreeOfParallelism ?? Environment.ProcessorCount * 20;
+
+			string pageToken = null;
+			int count = 0;
+			using (var semaphore = new SemaphoreSlim(maxDegreeOfParallelism.Value, maxDegreeOfParallelism.Value))
+			{
+				try
+				{
+					dynamic indexStore = _indexes[indexName];
+					do
+					{
+						var result = await indexStore.GetAllRecordsPagedAsync(1000, pageToken);
+						pageToken = result.ContinuationToken;
+
+						if (result.Items.Count > 0)
+						{
+							foreach (var record in result.Items)
+							{
+								await semaphore.WaitAsync(TimeSpan.FromSeconds(20));
+								Task task = indexStore.InsertOrReplaceAsync(record);
+								task.ContinueWith(r =>
+								{
+									if (r.IsFaulted)
+									{
+										failedIndexCallback?.Invoke(record, r.Exception);
+									}
+									Interlocked.Increment(ref count);
+									semaphore.Release(1);
+								});
+
+							}
+						}
+
+						recordsIndexedCallback?.Invoke(count);
+					} while (pageToken != null);
+
+					while (semaphore.CurrentCount < maxDegreeOfParallelism)
+					{
+
+						await Task.Delay(5);
+					}
+					recordsIndexedCallback?.Invoke(count);
+				}
+				catch (KeyNotFoundException e)
+				{
+					throw new ArgumentException($"{indexName} is not a defined secondary index");
+				}
 			}
 		}
 
