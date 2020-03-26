@@ -15,14 +15,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="xtensible-x.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TableStorage.Abstractions.POCO" Version="2.6.0" />
   </ItemGroup>
 
 </Project>
