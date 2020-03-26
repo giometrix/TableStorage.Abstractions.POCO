@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableStorage.Abstractions.Store;
+using Xtensible.Time;
 
 namespace TableStorage.Abstractions.POCO.Tests
 {
@@ -16,6 +17,8 @@ namespace TableStorage.Abstractions.POCO.Tests
 		[TestInitialize]
 		public void CreateData()
 		{
+			Clock.Default = new MockClock(new DateTimeOffset(2020,7,1,11,42,0, TimeSpan.Zero));
+
 			tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
 				e => e.CompanyId,
 				e => e.Id);
@@ -46,6 +49,65 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void create_table_callback()
+		{
+			var tableName = "";
+			var tableStore = new PocoTableStore<Employee, int, int>("Callback", "UseDevelopmentStorage=true",
+				e => e.CompanyId,
+				e => e.Id);
+
+			tableStore.OnTableCreated += (n, t) => tableName = n;
+			tableStore.CreateTable();
+			tableStore.DeleteTable();
+			Assert.AreNotEqual("",tableName);
+
+		}
+
+		[TestMethod]
+		public async Task create_table_async_callback()
+		{
+			var tableName = "";
+			var tableStore = new PocoTableStore<Employee, int, int>("CallbackAsync", "UseDevelopmentStorage=true",
+				e => e.CompanyId,
+				e => e.Id);
+
+			tableStore.OnTableCreatedAsync += async (n, t) => tableName = n;
+			await tableStore.CreateTableAsync();
+			tableStore.DeleteTable();
+			Assert.AreNotEqual("", tableName);
+
+		}
+
+
+		[TestMethod]
+		public void delete_table_callback()
+		{
+			var tableName = "";
+			var tableStore = new PocoTableStore<Employee, int, int>("DeleteTable", "UseDevelopmentStorage=true",
+				e => e.CompanyId,
+				e => e.Id);
+
+			tableStore.OnTableDeleted += (n, t) => tableName = n;
+			tableStore.DeleteTable();
+			Assert.AreNotEqual("", tableName);
+
+		}
+
+		[TestMethod]
+		public async Task delete_table_callback_async()
+		{
+			var tableName = "";
+			var tableStore = new PocoTableStore<Employee, int, int>("DeleteTableAsync", "UseDevelopmentStorage=true",
+				e => e.CompanyId,
+				e => e.Id);
+
+			tableStore.OnTableDeletedAsync += async (n, t) => tableName = n;
+			await tableStore.DeleteTableAsync();
+			Assert.AreNotEqual("", tableName);
+
+		}
+
+		[TestMethod]
 		public void insert_record()
 		{
 			var employee = new Employee
@@ -57,6 +119,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 			Assert.AreEqual(4, tableStore.GetRecordCount());
+		}
+
+		[TestMethod]
+		public void insert_record_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			tableStore.OnRecordInsertedOrUpdated += r => wasCalled = true;
+			tableStore.Insert(employee);
+			Assert.IsTrue(wasCalled);
 		}
 
 		[TestMethod]
@@ -93,6 +171,21 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(4, tableStore.GetRecordCount());
 		}
 
+		[TestMethod]
+		public void insert_or_replace_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			tableStore.OnRecordInsertedOrUpdated += r => wasCalled = true;
+			tableStore.InsertOrReplace(employee);
+			Assert.IsTrue(wasCalled);
+		}
 
 		[TestMethod]
 		public void insert_or_replace_record_updates_when_record_is_not_new()
@@ -135,6 +228,30 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void insert_records_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			var employee2 = new Employee
+			{
+				Name = "Test2",
+				CompanyId = 299,
+				Id = 299,
+				Department = new Department { Id = 52, Name = "Test2" }
+			};
+			tableStore.OnRecordsInserted += r => wasCalled = true;
+			tableStore.Insert(new[] { employee, employee2 });
+			Assert.IsTrue(wasCalled);
+		}
+
+		[TestMethod]
 		public async Task insert_record_async()
 		{
 			var employee = new Employee
@@ -146,6 +263,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			await tableStore.InsertAsync(employee);
 			Assert.AreEqual(4, tableStore.GetRecordCount());
+		}
+
+		[TestMethod]
+		public async Task insert_record_async_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+			await tableStore.InsertAsync(employee);
+			Assert.IsTrue(wasCalled);
 		}
 
 		[TestMethod]
@@ -162,6 +295,21 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(4, tableStore.GetRecordCount());
 		}
 
+		[TestMethod]
+		public async Task insert_or_replace_record_async_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+			await tableStore.InsertOrReplaceAsync(employee);
+			Assert.IsTrue(wasCalled);
+		}
 
 		[TestMethod]
 		public async Task insert_or_replace_record_updates_when_record_is_not_new_async()
@@ -202,6 +350,30 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			await tableStore.InsertAsync(new[] {employee, employee2});
 			Assert.AreEqual(5, tableStore.GetRecordCount());
+		}
+
+		[TestMethod]
+		public async Task insert_records_async_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			var employee2 = new Employee
+			{
+				Name = "Test2",
+				CompanyId = 299,
+				Id = 299,
+				Department = new Department { Id = 52, Name = "Test2" }
+			};
+			tableStore.OnRecordsInsertedAsync += async r => wasCalled = true;
+			await tableStore.InsertAsync(new[] { employee, employee2 });
+			Assert.IsTrue(wasCalled);
 		}
 
 
@@ -672,6 +844,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void update_record_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.OnRecordInsertedOrUpdated += r => wasCalled = true;
+			tableStore.Update(employee);
+			Assert.IsTrue(wasCalled);
+		}
+
+		[TestMethod]
 		public void update_record_updates_timestamp()
 		{
 			var employee = new Employee
@@ -707,6 +895,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 		}
 
 		[TestMethod]
+		public void update_record_wildcard_etag_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.OnRecordInsertedOrUpdated += r => wasCalled = true;
+			tableStore.UpdateUsingWildcardEtag(employee);
+			Assert.IsTrue(wasCalled);
+		}
+
+		[TestMethod]
 		public async Task update_record_async()
 		{
 			var employee = new Employee
@@ -719,6 +923,22 @@ namespace TableStorage.Abstractions.POCO.Tests
 			await tableStore.UpdateAsync(employee);
 			var record = tableStore.GetRecord(1, 1);
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
+		}
+
+		[TestMethod]
+		public async Task update_record_async_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+			await tableStore.UpdateAsync(employee);
+			Assert.IsTrue(wasCalled);
 		}
 
 		[TestMethod]
@@ -736,6 +956,21 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual("Mr. Jim CEO", record.Name);
 		}
 
+		[TestMethod]
+		public async Task update_record_wildcard_etag_async_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 1,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+			tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+			await tableStore.UpdateUsingWildcardEtagAsync(employee);
+			Assert.IsTrue(wasCalled);
+		}
 
 		[TestMethod]
 		public void delete_record()
@@ -743,6 +978,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var employee = new Employee {CompanyId = 1, Id = 1};
 			tableStore.Delete(employee);
 			Assert.AreEqual(2, tableStore.GetRecordCount());
+		}
+
+		[TestMethod]
+		public void delete_record_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee { CompanyId = 1, Id = 1 };
+			tableStore.OnRecordDeleted += r => wasCalled = true;
+			tableStore.Delete(employee);
+			Assert.IsTrue(wasCalled);
 		}
 
 
@@ -763,6 +1008,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(2, tableStore.GetRecordCount());
 		}
 
+		[TestMethod]
+		public void delete_record_wildcard_etag_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee { CompanyId = 1, Id = 1 };
+			tableStore.OnRecordDeleted += r => wasCalled = true;
+			tableStore.DeleteUsingWildcardEtag(employee);
+			Assert.IsTrue(wasCalled);
+		}
+
 
 		[TestMethod]
 		public async Task delete_record_async()
@@ -772,6 +1027,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(2, tableStore.GetRecordCount());
 		}
 
+		[TestMethod]
+		public async Task delete_record_async_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee { CompanyId = 1, Id = 1 };
+			tableStore.OnRecordDeletedAsync += async r => wasCalled = true;
+			await tableStore.DeleteAsync(employee);
+			Assert.IsTrue(wasCalled);
+		}
+
 
 		[TestMethod]
 		public async Task delete_record_wildcard_etag_async()
@@ -779,6 +1044,16 @@ namespace TableStorage.Abstractions.POCO.Tests
 			var employee = new Employee {CompanyId = 1, Id = 1};
 			await tableStore.DeleteUsingWildcardEtagAsync(employee);
 			Assert.AreEqual(2, tableStore.GetRecordCount());
+		}
+
+		[TestMethod]
+		public async Task delete_record_wildcard_etag_async_callback()
+		{
+			bool wasCalled = false;
+			var employee = new Employee { CompanyId = 1, Id = 1 };
+			tableStore.OnRecordDeletedAsync += async r => wasCalled = true;
+			await tableStore.DeleteUsingWildcardEtagAsync(employee);
+			Assert.IsTrue(wasCalled);
 		}
 
 		[TestMethod]
@@ -1566,6 +1841,133 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual(22, record.Department.Id);
 			Assert.AreEqual("Ted", record.Name);
 		}
+
+		[TestMethod]
+		public void insert_record_with_sequential_row_key()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(false);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "Mr. Jim CEO",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+			var records = tableStore.GetByPartitionKey(242443);
+			
+			Assert.AreEqual(1,records.Count());
+		}
+
+		[TestMethod]
+		public void insert_record_with_sequential_row_key_sorts_correctly()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(false);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "1",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+
+			Clock.AsMockClock().Adjust(1000);
+
+			employee.Name = "2";
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			employee.Name = "3";
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			var records = tableStore.GetByPartitionKey(242443).ToList();
+
+			Assert.AreEqual(3, records.Count());
+
+			Assert.AreEqual("1", records[0].Name);
+			Assert.AreEqual("2", records[1].Name);
+			Assert.AreEqual("3", records[2].Name);
+		}
+
+		[TestMethod]
+		public void insert_record_with_reverse_sequential_row_key_sorts_correctly()
+		{
+			var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
+
+			var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+			tableStore =
+				new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+
+			var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "1",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+
+			Clock.AsMockClock().Adjust(1000);
+
+			employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "2",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "3",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+
+			tableStore.Insert(employee);
+			Clock.AsMockClock().Adjust(1000);
+
+			var records = tableStore.GetByPartitionKey(242443).ToList();
+
+			Assert.AreEqual(3, records.Count());
+
+			Assert.AreEqual("3", records[0].Name);
+			Assert.AreEqual("2", records[1].Name);
+			Assert.AreEqual("1", records[2].Name);
+		}
+
 
 		[TestCleanup]
 		public void Cleanup()

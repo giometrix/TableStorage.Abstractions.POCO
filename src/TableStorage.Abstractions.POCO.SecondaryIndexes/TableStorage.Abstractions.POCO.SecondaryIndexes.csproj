@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.0.0</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Giovanni Galbo</Authors>
+    <Company>Giovanni Galbo</Company>
+    <Description>Geared more toward Azure Table Storage (vs CosmosDB, which has an ATS api), using an intra/inter partition (or table) secondary index pattern.  This library handles keeping the indexes up to date as data gets mutated.</Description>
+    <Copyright>2020</Copyright>
+    <PackageIcon>xtensible-x.png</PackageIcon>
+    <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
+    <PackageTags>table-storage azure-table-storage poco table-entities tableentity index secondary-index</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="xtensible-x.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

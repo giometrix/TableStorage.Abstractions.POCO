@@ -577,5 +577,57 @@ namespace TableStorage.Abstractions.POCO
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByRowKeyPagedAsync(TRowKey rowKey, Func<T, bool> filter, int pageSize = 100,
 			string continuationTokenJson = null);
+
+		/// <summary>
+		/// Occurs when on table created.
+		/// </summary>
+		event Action<string, IPocoTableStore<T, TPartitionKey, TRowKey>> OnTableCreated;
+
+		/// <summary>
+		/// Occurs when on table created.
+		/// </summary>
+		event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, Task> OnTableCreatedAsync;
+
+		/// <summary>
+		/// Occurs when on table deleted.
+		/// </summary>
+		event Action<string, IPocoTableStore<T, TPartitionKey, TRowKey>> OnTableDeleted;
+
+		/// <summary>
+		/// Occurs when on table deleted.
+		/// </summary>
+		event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, Task> OnTableDeletedAsync;
+
+		/// <summary>
+		/// Occurs when on record inserted or updated.
+		/// </summary>
+		event Action<T> OnRecordInsertedOrUpdated;
+
+		/// <summary>
+		/// Occurs when on record inserted or updated.
+		/// </summary>
+		event Func<T, Task> OnRecordInsertedOrUpdatedAsync;
+
+
+		/// <summary>
+		/// Occurs when on records inserted.
+		/// </summary>
+		event Action<IEnumerable<T>> OnRecordsInserted;
+
+		/// <summary>
+		/// Occurs when on records inserted.
+		/// </summary>
+		event Func<IEnumerable<T>, Task> OnRecordsInsertedAsync;
+
+		/// <summary>
+		/// Occurs when on record deleted.
+		/// </summary>
+		event Action<T> OnRecordDeleted;
+
+		/// <summary>
+		/// Occurs when on record deleted.
+		/// </summary>
+		event Func<T, Task> OnRecordDeletedAsync;
+
 	}
 }

@@ -23,7 +23,7 @@ namespace TableStorage.Abstractions.POCO
 
 		private readonly IKeysConverter<T, TPartitionKey, TRowKey> _keysConverter;
 		private readonly TableStore<DynamicTableEntity> _tableStore;
-
+		private readonly string _tableName;
 
 
 		/// <summary>
@@ -52,10 +52,10 @@ namespace TableStorage.Abstractions.POCO
 
 
 			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
-
+			_tableName = tableName;
 			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
-
+			
 		}
 
 
@@ -81,6 +81,7 @@ namespace TableStorage.Abstractions.POCO
 
 
 			_keysConverter = keysConverter;
+			_tableName = tableName;
 			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
 
@@ -106,6 +107,7 @@ namespace TableStorage.Abstractions.POCO
 			if (keysConverter == null) throw new ArgumentNullException(nameof(keysConverter));
 
 			_keysConverter = keysConverter;
+			_tableName = tableName;
 			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
 
@@ -117,6 +119,7 @@ namespace TableStorage.Abstractions.POCO
 		public void CreateTable()
 		{
 			_tableStore.CreateTable();
+			OnTableCreated?.Invoke(_tableName, this);
 		}
 
 		/// <summary>
@@ -141,6 +144,7 @@ namespace TableStorage.Abstractions.POCO
 			var entity = CreateEntity(record);
 
 			_tableStore.Insert(entity);
+			OnRecordInsertedOrUpdated?.Invoke(record);
 		}
 		/// <summary>
 		/// Inserts or replaces the record
@@ -155,6 +159,7 @@ namespace TableStorage.Abstractions.POCO
 			var entity = CreateEntity(record);
 
 			_tableStore.InsertOrReplace(entity);
+			OnRecordInsertedOrUpdated?.Invoke(record);
 		}
 
 		/// <summary>
@@ -169,6 +174,7 @@ namespace TableStorage.Abstractions.POCO
 
 			var entities = CreateEntities(records);
 			_tableStore.Insert(entities);
+			OnRecordsInserted?.Invoke(records);
 		}
 
 		/// <summary>
@@ -180,6 +186,7 @@ namespace TableStorage.Abstractions.POCO
 			var entity = CreateEntityWithEtag(record);
 
 			_tableStore.Update(entity);
+			OnRecordInsertedOrUpdated?.Invoke(record);
 		}
 
 		/// <summary>
@@ -190,6 +197,7 @@ namespace TableStorage.Abstractions.POCO
 		{
 			var entity = CreateEntity(record);
 			_tableStore.UpdateUsingWildcardEtag(entity);
+			OnRecordInsertedOrUpdated?.Invoke(record);
 		}
 
 		/// <summary>
@@ -200,6 +208,7 @@ namespace TableStorage.Abstractions.POCO
 		{
 			var entity = CreateEntityWithEtag(record);
 			_tableStore.Delete(entity);
+			OnRecordDeleted?.Invoke(record);
 		}
 
 		/// <summary>
@@ -210,6 +219,7 @@ namespace TableStorage.Abstractions.POCO
 		{
 			var entity = CreateEntity(record);
 			_tableStore.DeleteUsingWildcardEtag(entity);
+			OnRecordDeleted?.Invoke(record);
 		}
 
 		/// <summary>
@@ -218,6 +228,7 @@ namespace TableStorage.Abstractions.POCO
 		public void DeleteTable()
 		{
 			_tableStore.DeleteTable();
+			OnTableDeleted?.Invoke(_tableName, this);
 		}
 
 		/// <summary>
@@ -368,9 +379,10 @@ namespace TableStorage.Abstractions.POCO
 		/// Creates the table storage table asynchronously.
 		/// </summary>
 		/// <returns>Task.</returns>
-		public Task CreateTableAsync()
+		public async Task CreateTableAsync()
 		{
-			return _tableStore.CreateTableAsync();
+			await  _tableStore.CreateTableAsync();
+			if (OnTableCreatedAsync != null) await OnTableCreatedAsync(_tableName, this);
 		}
 
 		/// <summary>
@@ -388,14 +400,15 @@ namespace TableStorage.Abstractions.POCO
 		/// <param name="record">The record.</param>
 		/// <returns>Task.</returns>
 		/// <exception cref="ArgumentNullException">record</exception>
-		public Task InsertAsync(T record)
+		public async Task InsertAsync(T record)
 		{
 			if (record == null)
 				throw new ArgumentNullException(nameof(record));
 
 			var entity = CreateEntity(record);
 
-			return _tableStore.InsertAsync(entity);
+			await _tableStore.InsertAsync(entity);
+			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
 		}
 
 		/// <summary>
@@ -404,14 +417,15 @@ namespace TableStorage.Abstractions.POCO
 		/// <param name="record"></param>
 		/// <returns>Task.</returns>
 		/// <exception cref="ArgumentNullException">record</exception>
-		public Task InsertOrReplaceAsync(T record)
+		public async Task InsertOrReplaceAsync(T record)
 		{
 			if (record == null)
 				throw new ArgumentNullException(nameof(record));
 
 			var entity = CreateEntity(record);
 
-			return _tableStore.InsertOrReplaceAsync(entity);
+			await _tableStore.InsertOrReplaceAsync(entity);
+			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
 		}
 
 		/// <summary>
@@ -420,13 +434,14 @@ namespace TableStorage.Abstractions.POCO
 		/// <param name="records">The records.</param>
 		/// <returns>Task.</returns>
 		/// <exception cref="ArgumentNullException">records</exception>
-		public Task InsertAsync(IEnumerable<T> records)
+		public async Task InsertAsync(IEnumerable<T> records)
 		{
 			if (records == null)
 				throw new ArgumentNullException(nameof(records));
 
 			var entities = CreateEntities(records);
-			return _tableStore.InsertAsync(entities);
+			await _tableStore.InsertAsync(entities);
+			if (OnRecordsInsertedAsync != null) await OnRecordsInsertedAsync(records);
 		}
 
 		/// <summary>
@@ -434,10 +449,11 @@ namespace TableStorage.Abstractions.POCO
 		/// </summary>
 		/// <param name="record">The record.</param>
 		/// <returns>Task.</returns>
-		public Task UpdateAsync(T record)
+		public async Task UpdateAsync(T record)
 		{
 			var entity = CreateEntityWithEtag(record);
-			return _tableStore.UpdateAsync(entity);
+			await _tableStore.UpdateAsync(entity);
+			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
 		}
 
 		/// <summary>
@@ -445,10 +461,11 @@ namespace TableStorage.Abstractions.POCO
 		/// </summary>
 		/// <param name="record">The record.</param>
 		/// <returns>Task.</returns>
-		public Task UpdateUsingWildcardEtagAsync(T record)
+		public async Task UpdateUsingWildcardEtagAsync(T record)
 		{
-			var entity = CreateEntity(record);
-			return _tableStore.UpdateUsingWildcardEtagAsync(entity);
+			var entity = CreateEntity(record); 
+			await _tableStore.UpdateUsingWildcardEtagAsync(entity);
+			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
 		}
 
 		/// <summary>
@@ -456,10 +473,11 @@ namespace TableStorage.Abstractions.POCO
 		/// </summary>
 		/// <param name="record">The record.</param>
 		/// <returns>Task.</returns>
-		public Task DeleteAsync(T record)
+		public async Task DeleteAsync(T record)
 		{
 			var entity = CreateEntityWithEtag(record);
-			return _tableStore.DeleteAsync(entity);
+			await _tableStore.DeleteAsync(entity);
+			if (OnRecordDeletedAsync != null) await OnRecordDeletedAsync(record);
 		}
 
 		/// <summary>
@@ -467,19 +485,21 @@ namespace TableStorage.Abstractions.POCO
 		/// </summary>
 		/// <param name="record">The record.</param>
 		/// <returns>Task.</returns>
-		public Task DeleteUsingWildcardEtagAsync(T record)
+		public async Task DeleteUsingWildcardEtagAsync(T record)
 		{
 			var entity = CreateEntity(record);
-			return _tableStore.DeleteUsingWildcardEtagAsync(entity);
+			await _tableStore.DeleteUsingWildcardEtagAsync(entity);
+			if (OnRecordDeletedAsync != null) await OnRecordDeletedAsync(record);
 		}
 
 		/// <summary>
 		/// Deletes the table asynchronously.
 		/// </summary>
 		/// <returns>Task.</returns>
-		public Task DeleteTableAsync()
+		public async Task DeleteTableAsync()
 		{
-			return _tableStore.DeleteTableAsync();
+			await _tableStore.DeleteTableAsync();
+			if (OnTableDeletedAsync != null) await OnTableDeletedAsync(_tableName, this);
 		}
 
 		/// <summary>
@@ -972,6 +992,57 @@ namespace TableStorage.Abstractions.POCO
 		{
 			return GetByRowKeyPagedAsync(GetRowKeyString(rowKey), filter, pageSize, continuationTokenJson);
 		}
+
+		/// <summary>
+		/// Occurs when on table created.
+		/// </summary>
+		public event Action<string, IPocoTableStore<T, TPartitionKey, TRowKey>> OnTableCreated;
+
+		/// <summary>
+		/// Occurs when on table created.
+		/// </summary>
+		public event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, Task> OnTableCreatedAsync;
+
+		/// <summary>
+		/// Occurs when on table deleted.
+		/// </summary>
+		public event Action<string, IPocoTableStore<T, TPartitionKey, TRowKey>> OnTableDeleted;
+
+		/// <summary>
+		/// Occurs when on table deleted.
+		/// </summary>
+		public event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, Task> OnTableDeletedAsync;
+
+		/// <summary>
+		/// Occurs when on record inserted or updated.
+		/// </summary>
+		public event Action<T> OnRecordInsertedOrUpdated;
+
+		/// <summary>
+		/// Occurs when on record inserted or updated.
+		/// </summary>
+		public event Func<T, Task> OnRecordInsertedOrUpdatedAsync;
+
+
+		/// <summary>
+		/// Occurs when on records inserted.
+		/// </summary>
+		public event Action<IEnumerable<T>> OnRecordsInserted;
+
+		/// <summary>
+		/// Occurs when on records inserted.
+		/// </summary>
+		public event Func<IEnumerable<T>, Task> OnRecordsInsertedAsync;
+
+		/// <summary>
+		/// Occurs when on record deleted.
+		/// </summary>
+		public event Action<T> OnRecordDeleted;
+
+		/// <summary>
+		/// Occurs when on record deleted.
+		/// </summary>
+		public event Func<T, Task> OnRecordDeletedAsync;
 
 		private DynamicTableEntity CreateEntity(T record)
 		{

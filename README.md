@@ -188,6 +188,40 @@ Note that our table store was ```PocoTableStore<Employee, int, int>```, but that
 ```var record = tableStore.GetRecord(142, "user");```
 which is both clear and provides type safety.
 
+#### Sequential Keys
+`SequentialKeyMapper` was introduced in v2.6 and is a bit different from other key mappers because the output isn't meant for point lookups.  This key mapper assigns keys in sequential order (forward or backward).  Because Azure Table Storage orders rows by row key, a sequential key allows you to use Azure Table Storage as a log.  
+
+Coupled with TODO , you can do things like saving a historical record when mutating your main table entity.
+
+Example:
+```csharp
+var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id, id => id.ToString());
+
+var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
+
+var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
+
+tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", keysConverter);
+
+var employee = new Employee
+			{
+				CompanyId = 1,
+				Id = 242443,
+				Name = "1",
+				Department = new Department { Id = 22, Name = "Executive" }
+			};
+
+tableStore.Insert(employee);
+
+employee.Name = "2";
+tableStore.Insert(employee);
+
+employee.Name = "3";
+tableStore.Insert(employee);
+
+// order will be 3, 2, 1 because we are sorting in sequential order						
+```
+
 ### Further Filtering (Beyond Partition & Row Keys)
 New to v1.2, we now include the ability to filter on properties outside of partition and row keys.  Please note that this filtering occurs outside of table storage, so please consider using at least the partition key for best results.
 
