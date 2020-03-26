@@ -191,7 +191,7 @@ which is both clear and provides type safety.
 #### Sequential Keys
 `SequentialKeyMapper` was introduced in v2.6 and is a bit different from other key mappers because the output isn't meant for point lookups.  This key mapper assigns keys in sequential order (forward or backward).  Because Azure Table Storage orders rows by row key, a sequential key allows you to use Azure Table Storage as a log.  
 
-Coupled with TODO , you can do things like saving a historical record when mutating your main table entity.
+Coupled with [TableStorage.Abstractions.POCO.SecondaryIndexes](https://github.com/giometrix/TableStorage.Abstractions.POCO/tree/master/src/TableStorage.Abstractions.POCO.SecondaryIndexes) , you can do things like saving a historical record when mutating your main table entity.
 
 Example:
 ```csharp
