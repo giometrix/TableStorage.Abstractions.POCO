@@ -1894,26 +1894,11 @@ namespace TableStorage.Abstractions.POCO.Tests
 
 			Clock.AsMockClock().Adjust(1000);
 
-			employee = new Employee
-			{
-				CompanyId = 1,
-				Id = 242443,
-				Name = "2",
-				Department = new Department { Id = 22, Name = "Executive" }
-			};
-
+			employee.Name = "2";
 			tableStore.Insert(employee);
 			Clock.AsMockClock().Adjust(1000);
 
-			employee = new Employee
-			{
-				CompanyId = 1,
-				Id = 242443,
-				Name = "3",
-				Department = new Department { Id = 22, Name = "Executive" }
-			};
-
-
+			employee.Name = "3";
 			tableStore.Insert(employee);
 			Clock.AsMockClock().Adjust(1000);
 
