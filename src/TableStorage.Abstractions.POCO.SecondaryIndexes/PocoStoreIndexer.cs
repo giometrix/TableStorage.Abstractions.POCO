@@ -490,7 +490,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 						{
 							foreach (var record in result.Items)
 							{
-								await semaphore.WaitAsync(TimeSpan.FromSeconds(20));
+								await semaphore.WaitAsync(TimeSpan.FromSeconds(20)).ConfigureAwait(false);
 								//Task task = indexStore.InsertOrReplaceAsync(record); //this line worked in the unit tests but not in a console app.  Not sure why.
 								var task = (Task) insertOrReplaceAsync.Invoke(indexStore, new object[] { record });
 								task.ContinueWith(r =>
@@ -512,7 +512,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 					while (semaphore.CurrentCount < maxDegreeOfParallelism)
 					{
 
-						await Task.Delay(5);
+						await Task.Delay(5).ConfigureAwait(false);
 					}
 					recordsIndexedCallback?.Invoke(count);
 				}

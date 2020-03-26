@@ -4,9 +4,9 @@
 This project builds on top of [TableStorage.Abstractions.POCO](https://github.com/giometrix/TableStorage.Abstractions.POCO) to introduce "secondary indexes" to [Azure Table Storage](https://github.com/giometrix/TableStorage.Abstractions.POCO). Internally this library uses an [intra/inter partition (or table) secondary index pattern](https://docs.microsoft.com/en-us/azure/storage/tables/table-storage-design-patterns).  When data gets mutated on your table store, the library takes care of reflecting the change in your secondary indexes.
 
 ## Caveats And Notes
-1. Indexes are managed through a library, _not_ Table Storage, thus data mutated outside of the library will not automatically be reflected in your indexes.
-2. Though Azure Table Storage does offer transactions within partitions, this library does not leverage this at this time.
-3. This library is intended for Azure Table Storage, not CosmosDB, which offers an Azure Table Storage API.  CosmosDB does offer secondary indexes, so this library may not be as useful there.
+1.  Indexes are managed through a library, _not_ Table Storage, thus data mutated outside of the library will not automatically be reflected in your indexes.
+2.  Though Azure Table Storage does offer transactions within partitions, this library does not leverage this at this time.
+3.  This library is intended for Azure Table Storage, not CosmosDB, which offers an Azure Table Storage API.  CosmosDB does offer secondary indexes, so this library may not be as useful there.
 
 ## Examples
 Note that it may be useful to read about [TableStorage.Abstractions.POCO](https://github.com/giometrix/TableStorage.Abstractions.POCO) to better understand the examples below.

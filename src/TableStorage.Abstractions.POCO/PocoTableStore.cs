@@ -381,8 +381,11 @@ namespace TableStorage.Abstractions.POCO
 		/// <returns>Task.</returns>
 		public async Task CreateTableAsync()
 		{
-			await  _tableStore.CreateTableAsync();
-			if (OnTableCreatedAsync != null) await OnTableCreatedAsync(_tableName, this);
+			await  _tableStore.CreateTableAsync().ConfigureAwait(false);
+			if (OnTableCreatedAsync != null)
+			{
+				await OnTableCreatedAsync(_tableName, this).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -407,8 +410,11 @@ namespace TableStorage.Abstractions.POCO
 
 			var entity = CreateEntity(record);
 
-			await _tableStore.InsertAsync(entity);
-			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
+			await _tableStore.InsertAsync(entity).ConfigureAwait(false);
+			if (OnRecordInsertedOrUpdatedAsync != null)
+			{
+				await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -424,8 +430,11 @@ namespace TableStorage.Abstractions.POCO
 
 			var entity = CreateEntity(record);
 
-			await _tableStore.InsertOrReplaceAsync(entity);
-			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
+			await _tableStore.InsertOrReplaceAsync(entity).ConfigureAwait(false);
+			if (OnRecordInsertedOrUpdatedAsync != null)
+			{
+				await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -440,8 +449,11 @@ namespace TableStorage.Abstractions.POCO
 				throw new ArgumentNullException(nameof(records));
 
 			var entities = CreateEntities(records);
-			await _tableStore.InsertAsync(entities);
-			if (OnRecordsInsertedAsync != null) await OnRecordsInsertedAsync(records);
+			await _tableStore.InsertAsync(entities).ConfigureAwait(false);
+			if (OnRecordsInsertedAsync != null)
+			{
+				await OnRecordsInsertedAsync(records).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -452,8 +464,11 @@ namespace TableStorage.Abstractions.POCO
 		public async Task UpdateAsync(T record)
 		{
 			var entity = CreateEntityWithEtag(record);
-			await _tableStore.UpdateAsync(entity);
-			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
+			await _tableStore.UpdateAsync(entity).ConfigureAwait(false);
+			if (OnRecordInsertedOrUpdatedAsync != null)
+			{
+				await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -464,8 +479,11 @@ namespace TableStorage.Abstractions.POCO
 		public async Task UpdateUsingWildcardEtagAsync(T record)
 		{
 			var entity = CreateEntity(record); 
-			await _tableStore.UpdateUsingWildcardEtagAsync(entity);
-			if (OnRecordInsertedOrUpdatedAsync != null) await OnRecordInsertedOrUpdatedAsync(record);
+			await _tableStore.UpdateUsingWildcardEtagAsync(entity).ConfigureAwait(false);
+			if (OnRecordInsertedOrUpdatedAsync != null)
+			{
+				await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -476,8 +494,11 @@ namespace TableStorage.Abstractions.POCO
 		public async Task DeleteAsync(T record)
 		{
 			var entity = CreateEntityWithEtag(record);
-			await _tableStore.DeleteAsync(entity);
-			if (OnRecordDeletedAsync != null) await OnRecordDeletedAsync(record);
+			await _tableStore.DeleteAsync(entity).ConfigureAwait(false);
+			if (OnRecordDeletedAsync != null)
+			{
+				await OnRecordDeletedAsync(record).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -488,8 +509,11 @@ namespace TableStorage.Abstractions.POCO
 		public async Task DeleteUsingWildcardEtagAsync(T record)
 		{
 			var entity = CreateEntity(record);
-			await _tableStore.DeleteUsingWildcardEtagAsync(entity);
-			if (OnRecordDeletedAsync != null) await OnRecordDeletedAsync(record);
+			await _tableStore.DeleteUsingWildcardEtagAsync(entity).ConfigureAwait(false);
+			if (OnRecordDeletedAsync != null)
+			{
+				await OnRecordDeletedAsync(record).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>
@@ -498,8 +522,11 @@ namespace TableStorage.Abstractions.POCO
 		/// <returns>Task.</returns>
 		public async Task DeleteTableAsync()
 		{
-			await _tableStore.DeleteTableAsync();
-			if (OnTableDeletedAsync != null) await OnTableDeletedAsync(_tableName, this);
+			await _tableStore.DeleteTableAsync().ConfigureAwait(false);
+			if (OnTableDeletedAsync != null)
+			{
+				await OnTableDeletedAsync(_tableName, this).ConfigureAwait(false);
+			}
 		}
 
 		/// <summary>

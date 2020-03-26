@@ -10,7 +10,7 @@ using Xtensible.Time;
 namespace TableStorage.Abstractions.POCO.Tests
 {
 	[TestClass]
-	public partial class PocoTableStoreTests
+	public class PocoTableStoreTests
 	{
 		private PocoTableStore<Employee, int, int> tableStore;
 

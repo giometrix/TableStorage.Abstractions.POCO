@@ -5,7 +5,7 @@
 
 This project builds on top of [TableStorage.Abstractions](https://github.com/Tazmainiandevil/TableStorage.Abstractions) (a repository wrapper over [Azure Table Storage](https://docs.microsoft.com/en-us/azure/cosmos-db/table-storage-how-to-use-dotnet)) and [TableStorage.Abstractions.TableEntityConverters](https://github.com/giometrix/TableStorage.Abstractions.TableEntityConverters) such that objects to be serialized to and from Azure Table Storage are Plain Old CLR Objects (POCO) rather than TableEntities.
 
-### For secondary index support, check out [TableStorage.Abstractions.POCO.SecondaryIndexes](https://github.com/giometrix/TableStorage.Abstractions.POCO/tree/master/src/TableStorage.Abstractions.POCO.SecondaryIndexes).
+## For secondary index support, check out [TableStorage.Abstractions.POCO.SecondaryIndexes](https://github.com/giometrix/TableStorage.Abstractions.POCO/tree/master/src/TableStorage.Abstractions.POCO.SecondaryIndexes)
 
 ## Examples
 Assume we have the following two classes, which we wish to serialize to and from Azure Table Storage:
@@ -146,7 +146,6 @@ To retrieve the record, we can use ```PartitionKey``` to build the multi-part ke
 ```csharp
 var record = tableStore.GetRecord(new PartitionKey(1, 22), 1);
 ```
-
 
 #### Fixed Keys
 Fixed keys are really just a specialization of calculated keys.  A scenario that you may run into sometimes is where you only need a single key, which is the case when you only query the data using point queries ("get by id").  In this scenario, you'll probably choose to supply a partition key and not a row key since in this case you'd get better throughput using partition keys in a high volume system (again, we are assuming a point-query-only scenario).
