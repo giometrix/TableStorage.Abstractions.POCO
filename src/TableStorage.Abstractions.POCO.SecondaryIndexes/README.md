@@ -73,8 +73,7 @@ var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
 
 var keysConverter = new CalculatedKeysConverter<Employee, int, int>(pKeyMapper, rKeyMapper);
 
-var logStore =
-				new PocoTableStore<Employee, int, int>("IXLogIndex", "UseDevelopmentStorage=true", keysConverter);
+var logStore = new PocoTableStore<Employee, int, int>("IXLogIndex", "UseDevelopmentStorage=true", keysConverter);
 
 TableStore.AddIndex("Log", logStore);
 
