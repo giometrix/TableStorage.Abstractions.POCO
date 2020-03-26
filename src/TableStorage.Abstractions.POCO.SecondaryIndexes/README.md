@@ -1,5 +1,5 @@
 # TableStorage.Abstractions.POCO.SecondaryIndexes
-![Build status](https://ci.appveyor.com/api/projects/status/fx9j8yc06s9ib4n9?svg=true) ![Nuget](https://img.shields.io/nuget/v/TableStorage.Abstractions.POCO.SecondaryIndexes)
+[![Build status](https://ci.appveyor.com/api/projects/status/fx9j8yc06s9ib4n9?svg=true)](https://ci.appveyor.com/project/giometrix/tablestorage-abstractions-poco) [![Nuget](https://img.shields.io/nuget/v/TableStorage.Abstractions.POCO.SecondaryIndexes)](https://www.nuget.org/packages/TableStorage.Abstractions.POCO.SecondaryIndexes/)
 
 This project builds on top of [TableStorage.Abstractions.POCO](https://github.com/giometrix/TableStorage.Abstractions.POCO) to introduce "secondary indexes" to [Azure Table Storage](https://github.com/giometrix/TableStorage.Abstractions.POCO). Internally this library uses an [intra/inter partition (or table) secondary index pattern](https://docs.microsoft.com/en-us/azure/storage/tables/table-storage-design-patterns).  When data gets mutated on your table store, the library takes care of reflecting the change in your secondary indexes.
 
