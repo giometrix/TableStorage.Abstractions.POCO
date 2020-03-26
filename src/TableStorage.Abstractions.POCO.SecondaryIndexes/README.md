@@ -1,5 +1,5 @@
 # TableStorage.Abstractions.POCO.SecondaryIndexes
-[![Build status](https://ci.appveyor.com/api/projects/status/fx9j8yc06s9ib4n9?svg=true)]
+![Build status](https://ci.appveyor.com/api/projects/status/fx9j8yc06s9ib4n9?svg=true) ![Nuget](https://img.shields.io/nuget/v/TableStorage.Abstractions.POCO.SecondaryIndexes)
 
 This project builds on top of [TableStorage.Abstractions.POCO](https://github.com/giometrix/TableStorage.Abstractions.POCO) to introduce "secondary indexes" to [Azure Table Storage](https://github.com/giometrix/TableStorage.Abstractions.POCO). Internally this library uses an [intra/inter partition (or table) secondary index pattern](https://docs.microsoft.com/en-us/azure/storage/tables/table-storage-design-patterns).  When data gets mutated on your table store, the library takes care of reflecting the change in your secondary indexes.
 
@@ -30,7 +30,7 @@ public class Department
 ### Instantiation
 Indexes are just regular `PocoTableStore`s so you instantiate them like any other `PocoTableStore`.  Here we instantiate the entity store and an index store.  The `PocoTableStore` named `TableStore` will store records using `CompanyId` as a partition key, and `Id` as the row key.  The `PocoTableStore` named `IndexStore` will store records using `CompanyId` as the partition key, and `Name` as the row key.  In this example they use different tables.
 
-``` csharp
+```csharp
 TableStore = new PocoTableStore<Employee, int, int>("IXTestEmployee", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Id);
 
 IndexStore = new PocoTableStore<Employee, int, string>("IXTestEmployeeNameIndex", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Name);
@@ -38,12 +38,12 @@ IndexStore = new PocoTableStore<Employee, int, string>("IXTestEmployeeNameIndex"
 
 Next we tie them together by using `AddIndex()`.  Indexes must be given a name so that you can specify which index to use when querying.  Hete we name our index "Name."
 
-``` charp
+```charp
 TableStore.AddIndex("Name", IndexStore);
 ```
 After adding the index, mutations that happen on `TableStore` will result in mutations in `IndexStore`.  For instance, if we insert a record as seen below, we can expect to find a corresponding record in `IndexStore.`
 
-``` charp
+```charp
 var employee = new Employee
 {
 	Name = "Test",
@@ -56,17 +56,17 @@ TableStore.Insert(employee);
 
 ### Fetching Data
 To fetch a single data point from the index, we use the `GetRecordByIndex` (or `GetRecordByIndexAsync`) extension method on the entity `PocoTableStore` (note that we are doing this on the main data store, not on the index, as a convenience):
-``` charp
+```charp
 var e = TableStore.GetRecordByIndex("Name", 99, "Test");
 ```
 
 Sometimes it may be useful to fetch all of the records from a partition for an index, such as historical data (described later).  Example:
-``` csharp
+```csharp
 var records = await TableStore.GetByIndexPartitionKeyAsync("Name", 99);
 ```
 
 One use of this pattern can be to store the current entity in the main entity store, and to keep historical data in a separate table.  Here is an example of this pattern:
-``` csharp
+```csharp
 var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id, id => id.ToString());
 
 var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
@@ -82,7 +82,7 @@ TableStore.AddIndex("Log", logStore);
 In the example above we create an index called "Log", which will use `Id` as the partition key and a decreasing sequence number for row key (so that the most recent record is always on top).  
 
 If we want to fetch the history for employee 99, we do the following:
-``` csharp
+```csharp
 var records = TableStore.GetByPartitionKey(99);
 ```
 
@@ -95,7 +95,7 @@ To remove _and_ drop an index without deleting data, use the `DropIndex()` or `D
 ### Seeding Or Reindexing
 If you are adding an index to an existing table that already has data, or if for some reason data gets out of sync, you can use the `Reindex()` extension method, shown below.  Note that this method is not  yet optimized (for instance no batching is currently used).  On my machine home internet connection, and data size, it took 22 minutes to index 1 million rows.
 
-``` charp
+```charp
 await TableStore.ReindexAsync("Name", maxDegreeOfParallelism: 20, recordsIndexedCallback: i=>count = i);
 ```
 Call backs are available to get status updates and errors.
