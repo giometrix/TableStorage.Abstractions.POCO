@@ -16,10 +16,6 @@ namespace TableStorage.Abstractions.POCO
 {
 	public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPartitionKey, TRowKey> where T : class, new()
 	{
-		//hack because this is internal.  Need to get this exposed.
-		private static readonly ConcurrentDictionary<Type, ConstructorInfo> _pagedResultConstructors =
-			new ConcurrentDictionary<Type, ConstructorInfo>();
-
 
 		private readonly IKeysConverter<T, TPartitionKey, TRowKey> _keysConverter;
 		private readonly TableStore<DynamicTableEntity> _tableStore;
@@ -1104,12 +1100,12 @@ namespace TableStorage.Abstractions.POCO
 		//this whole method is a hack, will be removed when PagedResult can be directly invoked.
 		private PagedResult<T> CreatePagedResult(PagedResult<DynamicTableEntity> result, Func<T, bool> filter = null)
 		{
-			_pagedResultConstructors.TryGetValue(typeof(T), out ConstructorInfo ctor);
+			PagedResultCache.PagedResultConstructors.TryGetValue(typeof(T), out ConstructorInfo ctor);
 			if (ctor == null)
 			{
 				var t = typeof(PagedResult<T>);
 				ctor = t.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
-				_pagedResultConstructors.TryAdd(t, ctor);
+				PagedResultCache.PagedResultConstructors.TryAdd(t, ctor);
 			}
 
 			var records = CreateRecords(result.Items);
@@ -1147,5 +1143,11 @@ namespace TableStorage.Abstractions.POCO
 
 
 
+	}
+
+	internal static class PagedResultCache
+	{
+		public static ConcurrentDictionary<Type, ConstructorInfo> PagedResultConstructors { get; } =
+			new ConcurrentDictionary<Type, ConstructorInfo>();
 	}
 }
