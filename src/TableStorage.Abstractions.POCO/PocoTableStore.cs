@@ -424,8 +424,7 @@ namespace TableStorage.Abstractions.POCO
 		/// <exception cref="ArgumentNullException">record</exception>
 		public async Task InsertOrReplaceAsync(T record)
 		{
-			if (record == null)
-				throw new ArgumentNullException(nameof(record));
+			if (record == null) throw new ArgumentNullException(nameof(record));
 
 			var entity = CreateEntity(record);
 
