@@ -1,4 +1,5 @@
 # TableStorage.Abstractions.POCO
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4341bd0912b741f797f0ac204562fe18)](https://app.codacy.com/manual/giometrix/TableStorage.Abstractions.POCO?utm_source=github.com&utm_medium=referral&utm_content=giometrix/TableStorage.Abstractions.POCO&utm_campaign=Badge_Grade_Dashboard)
 [![Build status](https://ci.appveyor.com/api/projects/status/fx9j8yc06s9ib4n9?svg=true)](https://ci.appveyor.com/project/giometrix/tablestorage-abstractions-poco)
 [![NuGet](https://img.shields.io/nuget/v/TableStorage.Abstractions.POCO.svg)](https://www.nuget.org/packages/TableStorage.Abstractions.POCO)
 [![Nuget Downloads](https://img.shields.io/nuget/dt/TableStorage.Abstractions.POCO.svg?color=purple&logo=nuget)](https://www.nuget.org/packages/TableStorage.Abstractions.POCO)
