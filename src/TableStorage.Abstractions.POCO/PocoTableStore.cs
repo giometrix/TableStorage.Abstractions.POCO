@@ -404,8 +404,7 @@ namespace TableStorage.Abstractions.POCO
 		/// <exception cref="ArgumentNullException">record</exception>
 		public async Task InsertAsync(T record)
 		{
-			if (record == null)
-				throw new ArgumentNullException(nameof(record));
+			if (record == null) throw new ArgumentNullException(nameof(record));
 
 			var entity = CreateEntity(record);
 
@@ -743,7 +742,10 @@ namespace TableStorage.Abstractions.POCO
 			var records = CreateRecords(await _tableStore.GetByRowKeyAsync(rowKey).ConfigureAwait(false));
 
 			if (filter != null)
+			{
 				records = records.Where(filter);
+			}
+				
 
 			return records;
 		}
