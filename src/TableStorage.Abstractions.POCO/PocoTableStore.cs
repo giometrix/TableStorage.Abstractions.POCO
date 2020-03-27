@@ -14,7 +14,7 @@ using Useful.Extensions;
 
 namespace TableStorage.Abstractions.POCO
 {
-	public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPartitionKey, TRowKey> where T : new()
+	public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPartitionKey, TRowKey> where T : class, new()
 	{
 		//hack because this is internal.  Need to get this exposed.
 		private static readonly ConcurrentDictionary<Type, ConstructorInfo> _pagedResultConstructors =
@@ -169,8 +169,7 @@ namespace TableStorage.Abstractions.POCO
 		/// <exception cref="ArgumentNullException">records</exception>
 		public void Insert(IEnumerable<T> records)
 		{
-			if (records == null)
-				throw new ArgumentNullException(nameof(records));
+			if (records == null) throw new ArgumentNullException(nameof(records));
 
 			var entities = CreateEntities(records);
 			_tableStore.Insert(entities);
@@ -353,7 +352,9 @@ namespace TableStorage.Abstractions.POCO
 			return Observable.Create<T>(o =>
 			{
 				foreach (var result in GetAllRecords())
+				{
 					o.OnNext(result);
+				}
 				return Disposable.Empty;
 			});
 		}
@@ -370,7 +371,9 @@ namespace TableStorage.Abstractions.POCO
 			return Observable.Create<T>(o =>
 			{
 				foreach (var result in GetAllRecords().Where(filter).Page(start, pageSize))
+				{
 					o.OnNext(result);
+				}
 				return Disposable.Empty;
 			});
 		}
@@ -1085,7 +1088,9 @@ namespace TableStorage.Abstractions.POCO
 		private T CreateRecord(DynamicTableEntity entity)
 		{
 			if (entity == null)
+			{
 				return default(T);
+			}
 
 			return _keysConverter.FromEntity(entity);
 
@@ -1110,7 +1115,9 @@ namespace TableStorage.Abstractions.POCO
 			var records = CreateRecords(result.Items);
 
 			if (filter != null)
+			{
 				records = records.Where(filter);
+			}
 
 			return ctor.Invoke(new object[]
 				{records.ToList(), result.ContinuationToken, result.IsFinalPage}) as PagedResult<T>;
