@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0.0</Version>
+    <Version>1.0.1.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Giovanni Galbo</Authors>
     <Company>Giovanni Galbo</Company>
@@ -12,6 +12,8 @@
     <PackageIcon>xtensible-x.png</PackageIcon>
     <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
     <PackageTags>table-storage azure-table-storage poco table-entities tableentity index secondary-index</PackageTags>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <PackageReleaseNotes>Minor optimizations</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
