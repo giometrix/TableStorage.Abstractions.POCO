@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -525,6 +526,39 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 			await TableStore.ReindexAsync("Name", maxDegreeOfParallelism: 20, recordsIndexedCallback: i=>count = i);
 
 			Assert.AreEqual(2, count);
+		}
+
+		[TestMethod]
+		public async Task delete_from_index_using_fixed_key_row()
+		{
+			var pkMapper = new KeyMapper<Employee, string>(e => e.Name, n=>n, e=>e.Name, n=>n);
+			var rkMapper = new FixedKeyMapper<Employee,string>("emp");
+			var keyConverter = new CalculatedKeysConverter<Employee,string,string>(pkMapper, rkMapper);
+			PocoTableStore<Employee, int, string> table = null;
+			try
+			{
+				table = new PocoTableStore<Employee, int, string>("IXTestEmployeeUT1", "UseDevelopmentStorage=true", e=>e.CompanyId, e=>e.Id);
+
+				var index = new PocoTableStore<Employee, string, string>("IXTestEmployeeNameIndexUT1", "UseDevelopmentStorage=true",
+				keyConverter);
+
+				table.AddIndex("Name2", index);
+
+			
+				var employee = new Employee
+				{
+					Name = "Test",
+					CompanyId = 99,
+					Id = 99,
+					Department = new Department { Id = 5, Name = "Test" }
+				};
+				await table.InsertOrReplaceAsync(employee);
+				await table.DeleteAsync(employee);
+			}
+			finally
+			{
+				await table.DeleteTableAsync();
+			}
 		}
 	}
 }
