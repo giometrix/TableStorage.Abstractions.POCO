@@ -560,5 +560,221 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes.Tests
 				await table.DeleteTableAsync();
 			}
 		}
+
+		[TestMethod]
+		public async Task conditional_index()
+		{
+			TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee,int,int>("IXActiveEmployees", "UseDevelopmentStorage=true", e=>e.CompanyId, e=>e.Id), e=>e.IsActive);
+			var employee = new Employee
+			{
+				Name = "Active",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" },
+				IsActive = true
+			};
+			TableStore.Insert(employee);
+
+			var employee2 = new Employee
+			{
+				Name = "Inactive",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department {Id = 5, Name = "Test"}
+			};
+
+			TableStore.Insert(employee2);
+
+			var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+
+			Assert.AreEqual(1, activeEmployees.Count());
+			Assert.AreEqual("Active", activeEmployees.Single().Name);
+
+		}
+
+		[TestMethod]
+		public async Task updating_record_in_conditional_index_stays_up_to_date()
+		{
+			TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee, int, int>("IXActiveEmployees", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Id), e => e.IsActive);
+			var employee = new Employee
+			{
+				Name = "Active",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" },
+				IsActive = true
+			};
+			TableStore.Insert(employee);
+
+			var employee2 = new Employee
+			{
+				Name = "Inactive",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			TableStore.Insert(employee2);
+			employee.Name = "ActiveX";
+			TableStore.Update(employee);
+			var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+
+			Assert.AreEqual(1, activeEmployees.Count());
+			Assert.AreEqual("ActiveX", activeEmployees.Single().Name);
+
+		}
+
+		[TestMethod]
+		public async Task updating_record_in_conditional_index_with_value_that_disqualifies_it_from_index_gets_removed()
+		{
+			TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee, int, int>("IXActiveEmployees", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Id), e => e.IsActive);
+			var employee = new Employee
+			{
+				Name = "Active",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" },
+				IsActive = true
+			};
+			TableStore.Insert(employee);
+
+			var employee2 = new Employee
+			{
+				Name = "Inactive",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			TableStore.Insert(employee2);
+			employee.IsActive = false;
+			TableStore.Update(employee);
+			var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+
+			Assert.AreEqual(0, activeEmployees.Count());
+			
+		}
+
+		[TestMethod]
+		public async Task updating_record_in_conditional_index_with_value_that_qualifies_it_for_index_gets_added()
+		{
+			TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee, int, int>("IXActiveEmployees", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Id), e => e.IsActive);
+			var employee = new Employee
+			{
+				Name = "Active",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" },
+				IsActive = true
+			};
+			TableStore.Insert(employee);
+
+			var employee2 = new Employee
+			{
+				Name = "Inactive",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			TableStore.Insert(employee2);
+			employee2.IsActive = true;
+			TableStore.Update(employee2);
+			var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+
+			Assert.AreEqual(2, activeEmployees.Count());
+
+		}
+
+		[TestMethod]
+		public async Task deleting_record_also_removes_it_from_conditional_index()
+		{
+			TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee, int, int>("IXActiveEmployees", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Id), e => e.IsActive);
+			var employee = new Employee
+			{
+				Name = "Active",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" },
+				IsActive = true
+			};
+			TableStore.Insert(employee);
+
+			var employee2 = new Employee
+			{
+				Name = "Inactive",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			TableStore.Insert(employee2);
+			TableStore.Delete(employee);
+			var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+
+			Assert.AreEqual(0, activeEmployees.Count());
+
+		}
+
+		[TestMethod]
+		public async Task bulk_insert_with_conditional_index()
+		{
+			TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee, int, int>("IXActiveEmployees", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Id), e => e.IsActive);
+			var employee = new Employee
+			{
+				Name = "Active",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" },
+				IsActive = true
+			};
+			
+			var employee2 = new Employee
+			{
+				Name = "Inactive",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+
+			TableStore.Insert(new Employee[]{employee,employee2});
+			
+			var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+
+			Assert.AreEqual(1, activeEmployees.Count());
+			Assert.AreEqual("Active", activeEmployees.First().Name);
+
+		}
+
+		[TestMethod]
+		public async Task reindex_conditional_index()
+		{
+			var employee = new Employee
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				Department = new Department { Id = 5, Name = "Test" },
+				IsActive = true
+			};
+			var employee2 = new Employee
+			{
+				Name = "Test2",
+				CompanyId = 99,
+				Id = 100,
+				Department = new Department { Id = 5, Name = "Test" }
+			};
+			await TableStore.InsertAsync(employee);
+			await TableStore.InsertAsync(employee2);
+			TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee, int, int>("IXActiveEmployees", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Id), e => e.IsActive);
+			int count = 0;
+
+			await TableStore.ReindexAsync("ActiveEmployee", maxDegreeOfParallelism: 20, recordsIndexedCallback: i => count = i);
+
+			var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+
+
+			Assert.AreEqual(1, activeEmployees.Count());
+		}
 	}
 }

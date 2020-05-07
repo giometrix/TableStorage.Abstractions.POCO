@@ -12,8 +12,9 @@
     <PackageIcon>xtensible-x.png</PackageIcon>
     <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
     <PackageTags>table-storage azure-table-storage poco table-entities tableentity index secondary-index</PackageTags>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <PackageReleaseNotes>Minor optimizations</PackageReleaseNotes>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <PackageReleaseNotes>Added conditional indexes</PackageReleaseNotes>
+    <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

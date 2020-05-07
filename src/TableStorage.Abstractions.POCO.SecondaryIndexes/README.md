@@ -20,6 +20,7 @@ public class Employee
 	public int Id { get; set; }
 	public string Name { get; set; }
 	public Department Department { get; set; }
+	public bool IsActive {get; set;} = true;
 }
 
 public class Department
@@ -37,7 +38,7 @@ TableStore = new PocoTableStore<Employee, int, int>("IXTestEmployee", "UseDevelo
 IndexStore = new PocoTableStore<Employee, int, string>("IXTestEmployeeNameIndex", "UseDevelopmentStorage=true", e => e.CompanyId, e => e.Name);
 ```
 
-Next we tie them together by using `AddIndex()`.  Indexes must be given a name so that you can specify which index to use when querying.  Hete we name our index "Name."
+Next we tie them together by using `AddIndex()`.  Indexes must be given a name so that you can specify which index to use when querying.  Here we name our index "Name."
 
 ```charp
 TableStore.AddIndex("Name", IndexStore);
@@ -54,7 +55,23 @@ var employee = new Employee
 };
 TableStore.Insert(employee);
 ```
+### Conditional Indexes
+Introduced in 1.1, you can now easily utilize conditional indexes.  Conditional indexes allow you to add data to table storage only when a certain condition is true.  Effectively this lets you easily place data into "buckets" that you can efficiently query later.
 
+For example, suppose we want to quickly query only active employees.
+We can add a new index as described below:
+```charp
+TableStore.AddIndex("ActiveEmployee", new PocoTableStore<Employee, 
+int, int>("IXActiveEmployees", "UseDevelopmentStorage=true", 
+e => e.CompanyId, e => e.Id), e => e.IsActive);
+```
+Getting all active employees is now as easy as
+```charp
+var activeEmployees = TableStore.GetByIndexPartitionKey("ActiveEmployee", 99);
+```
+This query would yield all active employees for company `99`, without penalty of an expensive partition scan at the server.
+
+Note that conditional indexes are kept up to date, such that if a record were to no longer meet the condition (or later meet the condition), they will be removed or added to the index accordingly.
 ### Fetching Data
 To fetch a single data point from the index, we use the `GetRecordByIndex` (or `GetRecordByIndexAsync`) extension method on the entity `PocoTableStore` (note that we are doing this on the main data store, not on the index, as a convenience):
 ```charp

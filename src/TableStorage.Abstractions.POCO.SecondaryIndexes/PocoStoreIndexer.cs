@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
@@ -11,6 +12,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 	public static class PocoStoreIndexer
 	{
 		private static readonly Dictionary<string, dynamic> _indexes = new Dictionary<string, dynamic>();
+		private static readonly Dictionary<string, dynamic> _conditionalIndexFunctions = new Dictionary<string, dynamic>();
 
 		private static object _indexLock = new object();
 
@@ -26,7 +28,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="indexName"></param>
 		/// <param name="indexStore"></param>
 		public static void AddIndex<T, TPartitionKey, TRowKey, TIndexPartitionKey, TIndexRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
-			IPocoTableStore<T, TIndexPartitionKey, TIndexRowKey> indexStore)
+			IPocoTableStore<T, TIndexPartitionKey, TIndexRowKey> indexStore, Func<T,bool> indexCondition = null)
 		{
 			lock (_indexLock)
 			{
@@ -35,10 +37,73 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 					throw new ArgumentException($"{indexName} has already been added");
 				}
 				_indexes[indexName] = indexStore;
-				tableStore.OnRecordInsertedOrUpdated += indexStore.InsertOrReplace;
-				tableStore.OnRecordInsertedOrUpdatedAsync += indexStore.InsertOrReplaceAsync;
-				tableStore.OnRecordsInserted += indexStore.Insert;
-				tableStore.OnRecordsInsertedAsync += indexStore.InsertAsync;
+
+				if (indexCondition == null)
+				{
+					tableStore.OnRecordInsertedOrUpdated += indexStore.InsertOrReplace;
+					tableStore.OnRecordInsertedOrUpdatedAsync += indexStore.InsertOrReplaceAsync;
+					tableStore.OnRecordsInserted += indexStore.Insert;
+					tableStore.OnRecordsInsertedAsync += indexStore.InsertAsync;
+				}
+				else
+				{
+					_conditionalIndexFunctions[indexName] = indexCondition;
+
+					tableStore.OnRecordInsertedOrUpdated += record =>
+					{
+						if (indexCondition(record))
+						{
+							indexStore.InsertOrReplace(record);
+						}
+						else
+						{
+							try
+							{
+								indexStore.Delete(record);
+							}
+							catch (StorageException e) when (e.Message == "Not Found")
+							{
+								// if the index row wasn't there there is nothing to do
+							}
+
+						}
+					};
+
+					tableStore.OnRecordInsertedOrUpdatedAsync += async record =>
+					{
+						if (indexCondition(record))
+						{
+							await indexStore.InsertOrReplaceAsync(record).ConfigureAwait(false);
+						}
+						else
+						{
+							try
+							{
+								await indexStore.DeleteAsync(record).ConfigureAwait(false);
+							}
+							catch (StorageException e) when (e.Message == "Not Found")
+							{
+								// if the index row wasn't there there is nothing to do
+							}
+
+						}
+					};
+
+					tableStore.OnRecordsInserted += records =>
+					{
+						var pass = records.Where(indexCondition);
+						indexStore.Insert(pass);
+
+					};
+
+					tableStore.OnRecordsInsertedAsync += async records =>
+					{
+						var pass = records.Where(indexCondition);
+						await indexStore.InsertAsync(pass).ConfigureAwait(false);
+
+					};
+				}
+
 				tableStore.OnRecordDeleted += obj =>
 				{
 					try
@@ -54,7 +119,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 				{
 					try
 					{
-						await indexStore.DeleteAsync(obj);
+						await indexStore.DeleteAsync(obj).ConfigureAwait(false);
 					}
 					catch (StorageException e) when (e.Message == "Not Found")
 					{
@@ -67,6 +132,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 					lock (_indexLock)
 					{
 						_indexes.Remove(indexName);
+						_conditionalIndexFunctions.Remove(indexName);
 					}
 					indexStore.DeleteTable();
 				};
@@ -75,8 +141,9 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 					lock (_indexLock)
 					{
 						_indexes.Remove(indexName);
+						_conditionalIndexFunctions.Remove(indexName);
 					}
-					await indexStore.DeleteTableAsync();
+					await indexStore.DeleteTableAsync().ConfigureAwait(false);
 				};
 			}
 
@@ -98,6 +165,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 				if (_indexes.ContainsKey(indexName))
 				{
 					_indexes.Remove(indexName);
+					_conditionalIndexFunctions.Remove(indexName);
 				}
 			}
 		}
@@ -476,6 +544,12 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 
 			string pageToken = null;
 			int count = 0;
+			dynamic indexCondition = null;
+			lock (_indexLock)
+			{
+				_conditionalIndexFunctions.TryGetValue(indexName, out indexCondition);
+			}
+
 			using (var semaphore = new SemaphoreSlim(maxDegreeOfParallelism.Value, maxDegreeOfParallelism.Value))
 			{
 				try
@@ -486,22 +560,27 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 						var result = await tableStore.GetAllRecordsPagedAsync(1000, pageToken);
 						pageToken = result.ContinuationToken;
 						var insertOrReplaceAsync = indexStore.GetType().GetMethod("InsertOrReplaceAsync");
+
 						if (result.Items.Count > 0)
 						{
 							foreach (var record in result.Items)
 							{
-								await semaphore.WaitAsync(TimeSpan.FromSeconds(20)).ConfigureAwait(false);
 								//Task task = indexStore.InsertOrReplaceAsync(record); //this line worked in the unit tests but not in a console app.  Not sure why.
-								var task = (Task) insertOrReplaceAsync.Invoke(indexStore, new object[] { record });
-								task.ContinueWith(r =>
+								if (indexCondition == null || indexCondition(record))
 								{
-									if (r.IsFaulted)
+									await semaphore.WaitAsync(TimeSpan.FromSeconds(20)).ConfigureAwait(false);
+									var task = (Task) insertOrReplaceAsync.Invoke(indexStore, new object[] {record});
+									task.ContinueWith(r =>
 									{
-										failedIndexCallback?.Invoke(record, r.Exception);
-									}
-									Interlocked.Increment(ref count);
-									semaphore.Release(1);
-								});
+										if (r.IsFaulted)
+										{
+											failedIndexCallback?.Invoke(record, r.Exception);
+										}
+
+										Interlocked.Increment(ref count);
+										semaphore.Release(1);
+									});
+								}
 
 							}
 						}
