@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.6.1.0</Version>
+    <Version>2.7.0.0</Version>
     <Authors>Giovanni Galbo</Authors>
     <Company>Giovanni Galbo</Company>
     <Description>A repository wrapper for Azure Table Storage that uses POCOs (Plain Old CLR Objects) instead of objects that implemeent ITableEntity.
@@ -19,7 +19,7 @@ The library will convert simple properties to fields in Azure Table Storage. Com
     <PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
     <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
     <PackageTags>table-storage azure-table-storage poco table-entities tableentity</PackageTags>
-    <PackageReleaseNotes>minor optimizations</PackageReleaseNotes>
+    <PackageReleaseNotes>Bug fix to prevent exceptions when deserializing objects with readonly properties</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AssemblyVersion>2.6.1.0</AssemblyVersion>
@@ -30,7 +30,7 @@ The library will convert simple properties to fields in Azure Table Storage. Com
 
   <ItemGroup>
     <PackageReference Include="TableStorage.Abstractions" Version="3.1.0" />
-    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.2.0" />
+    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.3.0" />
     <PackageReference Include="Xtensible.Time.Clock" Version="1.1.0" />
   </ItemGroup>
 
