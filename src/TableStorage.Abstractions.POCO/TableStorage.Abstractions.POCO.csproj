@@ -1,44 +1,55 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.7.0.0</Version>
-    <Authors>Giovanni Galbo</Authors>
-    <Company>Giovanni Galbo</Company>
-    <Description>A repository wrapper for Azure Table Storage that uses POCOs (Plain Old CLR Objects) instead of objects that implemeent ITableEntity.
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Version>2.7.1.0</Version>
+		<Authors>Giovanni Galbo</Authors>
+		<Company>Giovanni Galbo</Company>
+		<Description>
+			A repository wrapper for Azure Table Storage that uses POCOs (Plain Old CLR Objects) instead of objects that implemeent ITableEntity.
 
-The Azure Storage SDK requires that objects that it works with to implement the ITableEntity interface. This puts us into one of two places that are often not desirable:
+			The Azure Storage SDK requires that objects that it works with to implement the ITableEntity interface. This puts us into one of two places that are often not desirable:
 
-You implement the ITableEntity interace, or inherit from TableEntity. This is easy, but now you've got a leaky abstraction, as well as properties that won't make much sense in your domain (e.g. instead of a UserId, you've now got a RowKey, of the wrong type), or you have fields that are out of place, like ETag and Timestamp.
-You create DTOs to save to ship data back and forth from the domain to Table Storage. This is a common style, but often is overkill, especially if we're just looking for a simple abstraction on top of Azure Table Storage.
-This simple library seeks to take care of the mapping for us, so that you can continue to write your domain objects as POCOs, while still being able to leverage the Azure Storage SDK.
+			You implement the ITableEntity interace, or inherit from TableEntity. This is easy, but now you've got a leaky abstraction, as well as properties that won't make much sense in your domain (e.g. instead of a UserId, you've now got a RowKey, of the wrong type), or you have fields that are out of place, like ETag and Timestamp.
+			You create DTOs to save to ship data back and forth from the domain to Table Storage. This is a common style, but often is overkill, especially if we're just looking for a simple abstraction on top of Azure Table Storage.
+			This simple library seeks to take care of the mapping for us, so that you can continue to write your domain objects as POCOs, while still being able to leverage the Azure Storage SDK.
 
-The library will convert simple properties to fields in Azure Table Storage. Complex types will serialize as json.</Description>
-    <Copyright>© Giovanni Galbo 2020</Copyright>
-    <PackageLicenseUrl></PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
-    <PackageTags>table-storage azure-table-storage poco table-entities tableentity</PackageTags>
-    <PackageReleaseNotes>Bug fix to prevent exceptions when deserializing objects with readonly properties</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <AssemblyVersion>2.6.1.0</AssemblyVersion>
-    <FileVersion>2.6.1.0</FileVersion>
-    <PackageIcon>xtensible-x.png</PackageIcon>
-    <PackageIconUrl />
-  </PropertyGroup>
+			The library will convert simple properties to fields in Azure Table Storage. Complex types will serialize as json.
+		</Description>
+		<Copyright>© Giovanni Galbo 2020</Copyright>
+		<PackageLicenseUrl></PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
+		<PackageTags>table-storage azure-table-storage poco table-entities tableentity</PackageTags>
+		<PackageReleaseNotes>Added sourcelink</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
-  <ItemGroup>
-    <PackageReference Include="TableStorage.Abstractions" Version="3.1.0" />
-    <PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.3.0" />
-    <PackageReference Include="Xtensible.Time.Clock" Version="1.1.0" />
-  </ItemGroup>
+		<AssemblyVersion>2.7.1.0</AssemblyVersion>
+		<FileVersion>2.7.1.0</FileVersion>
+		<PackageIcon>xtensible-x.png</PackageIcon>
+		<PackageIconUrl />
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="xtensible-x.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="TableStorage.Abstractions" Version="3.2.2" />
+		<PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.3.1" />
+		<PackageReference Include="Xtensible.Time.Clock" Version="1.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="xtensible-x.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>
