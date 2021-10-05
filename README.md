@@ -241,3 +241,19 @@ Azure Table Storage entities always have a timestamp.  If your POCO has a field 
 Modifications to the Timestamp property do not get persisited.  This is exactly how it works with the Azure Table Storage SDK.
 
 Considerations for taking a similar approach to ETag are being considered.
+
+#### Custom Json Serialization
+New to v3, you can now customize how complex fields get serialized to json.
+
+Example (Assume you have a custom json serializer named `KeysJsonConverter`):
+```csharp
+var jsonSerializerSettings = new JsonSerializerSettings
+	{
+		Converters = new List<JsonConverter>{new KeysJsonConverter(typeof(Department))}
+	};
+
+var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+	e => e.CompanyId,
+	e => e.Id,
+	new PocoTableStoreOptions(jsonSerializerSettings));
+```
