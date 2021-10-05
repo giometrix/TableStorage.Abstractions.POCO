@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using TableStorage.Abstractions.Store;
 using Xtensible.Time;
 
@@ -119,6 +120,43 @@ namespace TableStorage.Abstractions.POCO.Tests
 			};
 			tableStore.Insert(employee);
 			Assert.AreEqual(4, tableStore.GetRecordCount());
+		}
+
+		[TestMethod]
+		public async Task insert_record_custom_json()
+		{
+			var jsonSerializerSettings = new JsonSerializerSettings
+			{
+				Converters = new List<JsonConverter>{new KeysJsonConverter(typeof(Department))}
+			};
+
+			var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				e => e.CompanyId,
+				e => e.Id,
+				new PocoTableStoreOptions(jsonSerializerSettings));
+
+			var emp = new Employee
+			{
+				Name = "John Smith",
+				Department = new Department
+				{
+					Name = "QA",
+					Id = 1,
+				},
+				Id = 42,
+				CompanyId = 42342
+			};
+			await tableStore.InsertAsync(emp);
+
+			var ts = new TableStore<DynamicTableEntity>("TestEmployee",
+				"UseDevelopmentStorage=true");
+
+			var rawRecord = await ts.GetRecordAsync("42342", "42");
+			var deptJson = rawRecord.Properties["DepartmentJson"].StringValue;
+			Assert.AreEqual("{\"Keys\":[\"Id\",\"Name\"],\"Id\":1,\"Name\":\"QA\"}", deptJson);
+			var serializedRecord = await tableStore.GetRecordAsync(42342, 42);
+			Assert.AreEqual("QA", serializedRecord.Department.Name);
+			Assert.AreEqual(1, serializedRecord.Department.Id);
 		}
 
 		[TestMethod]

@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="TableStorage.Abstractions.POCO" Version="2.7.0" />
+    <PackageReference Include="TableStorage.Abstractions.POCO" Version="2.7.1" />
   </ItemGroup>
 
 </Project>

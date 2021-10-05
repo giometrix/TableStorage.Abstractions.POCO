@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
+using Newtonsoft.Json;
 using TableStorage.Abstractions.Models;
 using TableStorage.Abstractions.Store;
 using Useful.Extensions;
@@ -29,7 +30,7 @@ namespace TableStorage.Abstractions.POCO
 		/// <param name="storageConnectionString">The azure storage connection string.</param>
 		/// <param name="partitionProperty">The property to be used as a partition key.</param>
 		/// <param name="rowProperty">The property to be used as a row key.</param>
-		/// <param name="tableStorageOptions">The table storage options.</param>
+		/// <param name="options">The table storage options.</param>
 		/// <param name="ignoredProperties">The properties that should not be serialized.</param>
 		/// <exception cref="ArgumentNullException">tableName
 		/// or
@@ -39,22 +40,19 @@ namespace TableStorage.Abstractions.POCO
 		/// or
 		/// rowProperty</exception>
 		public PocoTableStore(string tableName, string storageConnectionString, Expression<Func<T, object>> partitionProperty,
-			Expression<Func<T, object>> rowProperty, TableStorageOptions tableStorageOptions = null, params Expression<Func<T, object>>[] ignoredProperties)
+			Expression<Func<T, object>> rowProperty, PocoTableStoreOptions options = null, params Expression<Func<T, object>>[] ignoredProperties)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
 			if (partitionProperty == null) throw new ArgumentNullException(nameof(partitionProperty));
 			if (rowProperty == null) throw new ArgumentNullException(nameof(rowProperty));
 
-
-			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, ignoredProperties);
+			options ??= new PocoTableStoreOptions();
+			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, options.JsonSerializerSettings, ignoredProperties);
 			_tableName = tableName;
-			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
-			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
-			
+			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, options.TableStorageOptions);
+
 		}
-
-
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PocoTableStore{T, TPartitionKey, TRowKey}" /> class.
@@ -78,7 +76,7 @@ namespace TableStorage.Abstractions.POCO
 
 			_keysConverter = keysConverter;
 			_tableName = tableName;
-			tableStorageOptions = tableStorageOptions ?? new TableStorageOptions();
+			tableStorageOptions ??= new TableStorageOptions();
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, tableStorageOptions);
 
 		}
