@@ -21,7 +21,7 @@
 		<PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
 		<PackageTags>table-storage azure-table-storage poco table-entities tableentity</PackageTags>
-		<PackageReleaseNotes>Allows for custom json serialization options</PackageReleaseNotes>
+		<PackageReleaseNotes>Bug Fix: Specify DateTimeKind.UTC when timestamp is DateTime</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -34,6 +34,7 @@
 		<PackageIcon>xtensible-x.png</PackageIcon>
 		<PackageIconUrl />
 		<LangVersion>latest</LangVersion>
+		<PackageVersion>3.0.1.0</PackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
