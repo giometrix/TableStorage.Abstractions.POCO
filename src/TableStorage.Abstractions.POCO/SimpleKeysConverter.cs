@@ -11,26 +11,30 @@ namespace TableStorage.Abstractions.POCO
 	{
 		private readonly Expression<Func<T, object>>[] _ignoredProperties;
 		private readonly JsonSerializerSettings _jsonSerializerSettings;
+		private readonly PropertyConverters<T> _propertyConverters;
 		private readonly Expression<Func<T, object>> _partitionProperty;
 		private readonly Expression<Func<T, object>> _rowProperty;
 
 		public SimpleKeysConverter(Expression<Func<T, object>> partitionProperty,
-			Expression<Func<T, object>> rowProperty, JsonSerializerSettings jsonSerializerSettings, Expression<Func<T, object>>[] ignoredProperties)
+			Expression<Func<T, object>> rowProperty, JsonSerializerSettings jsonSerializerSettings, 
+			PropertyConverters<T> propertyConverters,
+			Expression<Func<T, object>>[] ignoredProperties)
 		{
 			_partitionProperty = partitionProperty;
 			_rowProperty = rowProperty;
 			_ignoredProperties = ignoredProperties;
 			_jsonSerializerSettings = jsonSerializerSettings;
+			_propertyConverters = propertyConverters ?? new PropertyConverters<T>();
 		}
 
 		public DynamicTableEntity ToEntity(T obj)
 		{
-			return obj.ToTableEntity(_partitionProperty, _rowProperty, _jsonSerializerSettings, _ignoredProperties);
+			return obj.ToTableEntity(_partitionProperty, _rowProperty, _jsonSerializerSettings, _propertyConverters, _ignoredProperties);
 		}
 
 		public T FromEntity(DynamicTableEntity entity)
 		{
-			return entity.FromTableEntity<T, TPartitionKey, TRowKey>(_partitionProperty, _rowProperty, _jsonSerializerSettings);
+			return entity.FromTableEntity<T, TPartitionKey, TRowKey>(_partitionProperty, _rowProperty, _jsonSerializerSettings, _propertyConverters);
 		}
 
 		public string PartitionKey(TPartitionKey key)

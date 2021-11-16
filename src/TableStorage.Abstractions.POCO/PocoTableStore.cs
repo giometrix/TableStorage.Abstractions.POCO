@@ -11,6 +11,7 @@ using Microsoft.Azure.Cosmos.Table;
 using Newtonsoft.Json;
 using TableStorage.Abstractions.Models;
 using TableStorage.Abstractions.Store;
+using TableStorage.Abstractions.TableEntityConverters;
 using Useful.Extensions;
 
 namespace TableStorage.Abstractions.POCO
@@ -40,7 +41,8 @@ namespace TableStorage.Abstractions.POCO
 		/// or
 		/// rowProperty</exception>
 		public PocoTableStore(string tableName, string storageConnectionString, Expression<Func<T, object>> partitionProperty,
-			Expression<Func<T, object>> rowProperty, PocoTableStoreOptions options = null, params Expression<Func<T, object>>[] ignoredProperties)
+			Expression<Func<T, object>> rowProperty, PocoTableStoreOptions options = null,
+			params Expression<Func<T, object>>[] ignoredProperties)
 		{
 			if (tableName == null) throw new ArgumentNullException(nameof(tableName));
 			if (storageConnectionString == null) throw new ArgumentNullException(nameof(storageConnectionString));
@@ -48,7 +50,7 @@ namespace TableStorage.Abstractions.POCO
 			if (rowProperty == null) throw new ArgumentNullException(nameof(rowProperty));
 
 			options ??= new PocoTableStoreOptions();
-			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, options.JsonSerializerSettings, ignoredProperties);
+			_keysConverter = new SimpleKeysConverter<T, TPartitionKey, TRowKey>(partitionProperty, rowProperty, options.JsonSerializerSettings, default, ignoredProperties);
 			_tableName = tableName;
 			_tableStore = new TableStore<DynamicTableEntity>(tableName, storageConnectionString, options.TableStorageOptions);
 

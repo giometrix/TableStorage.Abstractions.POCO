@@ -6,6 +6,7 @@ using Microsoft.Azure.Cosmos.Table;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using TableStorage.Abstractions.Store;
+using TableStorage.Abstractions.TableEntityConverters;
 using Xtensible.Time;
 
 namespace TableStorage.Abstractions.POCO.Tests
@@ -431,6 +432,38 @@ namespace TableStorage.Abstractions.POCO.Tests
 			tableStore.Insert(employee);
 			var record = tableStore.GetRecord(99, 99);
 			Assert.IsNull(record.Department);
+		}
+		
+		[TestMethod]
+		public void insert_record_custom_property_converter()
+		{
+			var employee = new EmployeeWithHireDate
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				HireDate = new DateTime(1999,12,31),
+				Department = new Department {Id = 5, Name = "Test"}
+			};
+
+			var propertyConverters = new PropertyConverters<EmployeeWithHireDate>
+			{
+				[nameof(EmployeeWithHireDate.HireDate)] = new PropertyConverter<EmployeeWithHireDate>(
+					e=>new EntityProperty(e.HireDate.ToString("yyyy-M-d")),
+					(e,p)=>e.HireDate = DateTime.Parse(p.StringValue)
+					)
+			};
+
+			var simpleKeyConverter = new SimpleKeysConverter<EmployeeWithHireDate, int, int>(e => e.CompanyId, e => e.Id,
+				new JsonSerializerSettings(), propertyConverters, default);
+
+			var tableStore = new PocoTableStore<EmployeeWithHireDate, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				simpleKeyConverter);
+			
+			tableStore.Insert(employee);
+			var record = tableStore.GetRecord(99, 99);
+			Assert.AreEqual(employee.HireDate, record.HireDate);
+			tableStore.DeleteTable();
 		}
 
 		[TestMethod]
@@ -1122,6 +1155,41 @@ namespace TableStorage.Abstractions.POCO.Tests
 			Assert.AreEqual("SomeString", record.PartitionKey);
 			Assert.AreEqual("1", record.RowKey);
 			Assert.AreEqual("Mr. Jim CEO", record.Properties["Name"].StringValue);
+		}
+		
+		[TestMethod]
+		public void insert_record_with_fixed_partition_key_and_custom_property_converter()
+		{
+			var employee = new EmployeeWithHireDate
+			{
+				Name = "Test",
+				CompanyId = 99,
+				Id = 99,
+				HireDate = new DateTime(1999,12,31),
+				Department = new Department {Id = 5, Name = "Test"}
+			};
+
+			var propertyConverters = new PropertyConverters<EmployeeWithHireDate>
+			{
+				[nameof(EmployeeWithHireDate.HireDate)] = new PropertyConverter<EmployeeWithHireDate>(
+					e=>new EntityProperty(e.HireDate.ToString("yyyy-M-d")),
+					(e,p)=>e.HireDate = DateTime.Parse(p.StringValue)
+				)
+			};
+
+			var pKeyMapper = new FixedKeyMapper<EmployeeWithHireDate, int>("SomeString");
+			var rKeyMapper = new KeyMapper<EmployeeWithHireDate, int>(e => e.Id.ToString(), int.Parse, e => e.Id,
+				id => id.ToString());
+			var keysConverter = new CalculatedKeysConverter<EmployeeWithHireDate, int, int>(pKeyMapper, rKeyMapper, propertyConverters: propertyConverters);
+			
+
+			var tableStore = new PocoTableStore<EmployeeWithHireDate, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				keysConverter);
+			
+			tableStore.Insert(employee);
+			var record = tableStore.GetRecord(99, 99);
+			Assert.AreEqual(employee.HireDate, record.HireDate);
+			tableStore.DeleteTable();
 		}
 
 		[TestMethod]

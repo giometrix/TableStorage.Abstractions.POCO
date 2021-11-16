@@ -10,4 +10,9 @@ namespace TableStorage.Abstractions.POCO.Tests
 		public Department Department { get; set; }
 		public DateTimeOffset Timestamp { get; set; }
 	}
+	
+	public class EmployeeWithHireDate : Employee
+	{
+		public DateTime HireDate { get; set; }
+	}
 }
