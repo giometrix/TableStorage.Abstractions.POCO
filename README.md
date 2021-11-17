@@ -11,7 +11,7 @@ This project builds on top of [TableStorage.Abstractions](https://github.com/Taz
 ## Examples
 Assume we have the following two classes, which we wish to serialize to and from Azure Table Storage:
 
-```csharp
+```c#
 public class Employee
 {
   public int CompanyId { get; set; }
@@ -30,14 +30,14 @@ public class Department
 In our examples we will be using CompanyId as the partition key and (Employee) Id as the row key.
 
 ### Instantiating
-```charp
+```c#
 var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true", 
      e => e.CompanyId, e => e.Id);
 ```
 Here we create our table store and specify our partition key (CompanyId) and row key (Id).
 
 ### Inserting
-```charp
+```c#
 var employee = new Employee
 			{
 				Name = "Test",
@@ -48,7 +48,7 @@ var employee = new Employee
 tableStore.Insert(employee);
 ```
 ### Insert Or Replace (Update)
-```csharp
+```c#
 var employee = new Employee
 {
 	Name = "Test",
@@ -60,28 +60,28 @@ tableStore.InsertOrReplace(employee);
 ```
 
 ### Updating
-```charp
+```c#
 employee.Name = "Test2";
 tableStore.Update(employee);
 ```
 
 ### Get Record By Partition Key And Row Key
-```charp
+```c#
 var employee = tableStore.GetRecord(1, 42);
 ```
 
 ### Get All Records In Partition
-```charp
+```c#
 var employees = tableStore.GetByPartitionKey(1);
 ```
 
 ### Delete Record
-```charp
+```c#
 tableStore.Delete(employee);
 ```
 ### Excluding Properties From Serialization
 You may have some properties that you don't want to persist to Azure Table Storage.  To ignore properties, use the ```ignoredProperties``` parameter.
-```charp
+```c#
 var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDevelopmentStorage=true",
           e => e.CompanyId, e => e.Id, e=>e.Department);
 	  
@@ -94,7 +94,7 @@ There may be situations where you want the partition key or row key to be calcul
 
 Here's an example of using the ```CompanyId``` and ```DepartmentId``` as partition keys.
 
-```csharp
+```c#
 
 
 var partitionKeyMapper = new CalculatedKeyMapper<Employee, PartitionKey>(e => $"{e.CompanyId}.{e.Department.Id}", key =>
@@ -117,7 +117,7 @@ If you used a previous version of this library, you may remember a more complica
 
 Notice that we introduced a new class called ```PartitionKey```.  This class is a simple DTO to capture ```CompanyId``` and ```DepartmentId```.  A nice side effect of having a class for this is that we gain type safety and intellisense.
 
-```csharp
+```c#
 public class PartitionKey
 {
 	public PartitionKey(int companyId, int departmentId)
@@ -131,7 +131,7 @@ public class PartitionKey
 ```
 Inserting data is the same as always:
 
-```csharp
+```c#
 var employee = new Employee
 {
 	CompanyId = 1,
@@ -144,7 +144,7 @@ tableStore.Insert(employee);
 In table storage, the partition key for the above example would be "1.22" and its row key would be "1".
 
 To retrieve the record, we can use ```PartitionKey``` to build the multi-part key.
-```csharp
+```c#
 var record = tableStore.GetRecord(new PartitionKey(1, 22), 1);
 ```
 
@@ -155,7 +155,7 @@ Note that in v1.3 of the library we've simplified fixed key scenarios by introdu
 
 Again, we will use a contrived example.  Here we have use ```Id``` as partition key , and we always use the word "user" for rowkey, since this will not be used.
 
-```charp
+```c#
 var partitionKeyMapper = new KeyMapper<Employee, int>(e =>e.CompanyId.ToString(), int.Parse, e => e.CompanyId, id =>id.ToString());
 var rowKeyMapper = new FixedKeyMapper<Employee, int>("user");
 
@@ -163,7 +163,7 @@ var keysConverter = new CalculatedKeysConverter<Employee, int, int>(partitionKey
 ```	
 
 Inserting the data remains the same:
-```csharp
+```c#
 var employee = new Employee
 {
 	Id = 1,
@@ -176,13 +176,13 @@ tableStore.Insert(employee);
 
 As always, we have 2 ways of querying the data:
 
-```csharp
+```c#
 var record = tableStore.GetRecord("1", "user");
 ```
 
 We can also get the record using the typed overload, though in this case the second parameter is thrown away since there is no row key.  I prefer to use ```int.Min``` to show that this value is thrown away.
 
-```csharp
+```c#
 record = tableStore.GetRecord(1, int.MinValue);
 ```
 
@@ -196,7 +196,7 @@ which is both clear and provides type safety.
 Coupled with [TableStorage.Abstractions.POCO.SecondaryIndexes](https://github.com/giometrix/TableStorage.Abstractions.POCO/tree/master/src/TableStorage.Abstractions.POCO.SecondaryIndexes) , you can do things like saving a historical record when mutating your main table entity.
 
 Example:
-```csharp
+```c#
 var pKeyMapper = new KeyMapper<Employee, int>(e => e.Id.ToString(), int.Parse, e => e.Id, id => id.ToString());
 
 var rKeyMapper = new SequentialKeyMapper<Employee, int>(true);
@@ -229,7 +229,7 @@ New to v1.2, we now include the ability to filter on properties outside of parti
 
 Example:
 
-```charp
+```c#
 var records = tableStore.GetByPartitionKey(1, e=>e.Name == "Jim CEO");
 ```
 
@@ -246,7 +246,7 @@ Considerations for taking a similar approach to ETag are being considered.
 New to v3, you can now customize how complex fields get serialized to json.
 
 Example (Assume you have a custom json serializer named `KeysJsonConverter`):
-```csharp
+```c#
 var jsonSerializerSettings = new JsonSerializerSettings
 	{
 		Converters = new List<JsonConverter>{new KeysJsonConverter(typeof(Department))}
@@ -256,4 +256,39 @@ var tableStore = new PocoTableStore<Employee, int, int>("TestEmployee", "UseDeve
 	e => e.CompanyId,
 	e => e.Id,
 	new PocoTableStoreOptions(jsonSerializerSettings));
+```
+#### Custom Property Conversion For Non-Key Fields
+Starting in v3.1 you can specify custom property converters for properties that are not used as Partition or Row Key fields.
+
+This is a niche use case, but useful if you need it, for example, if dates are stored as strings in Azure Table Storage.
+
+Here is the test object we'll be using in the example:
+```c#
+var employee = new EmployeeWithHireDate
+{
+    Name = "Test",
+    CompanyId = 99,
+    Id = 99,
+    HireDate = new DateTime(1999,12,31),
+    Department = new Department {Id = 5, Name = "Test"}
+};
+```
+First we need to specify property converters. PropertyConverters is a dictionary. The key is the property name and the value is a PropertyConverter, which specifies how to convert to and from EntityProperty.
+```c#
+var propertyConverters = new PropertyConverters<EmployeeWithHireDate>
+{
+    [nameof(EmployeeWithHireDate.HireDate)] = new PropertyConverter<EmployeeWithHireDate>(
+        e=>new EntityProperty(e.HireDate.ToString("yyyy-M-d")),
+        (e,p)=>e.HireDate = DateTime.Parse(p.StringValue)
+        )
+};
+```
+Next we need to define a key converter and pass the `propertyConverters` in.
+```c#
+var simpleKeyConverter = new SimpleKeysConverter<EmployeeWithHireDate, int, int>(e => e.CompanyId, e => e.Id,
+				new JsonSerializerSettings(), propertyConverters, default);
+				
+var tableStore = new PocoTableStore<EmployeeWithHireDate, int, int>("TestEmployee", "UseDevelopmentStorage=true",
+				simpleKeyConverter);
+							
 ```

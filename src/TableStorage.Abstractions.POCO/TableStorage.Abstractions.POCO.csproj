@@ -34,7 +34,7 @@
 		<PackageIcon>xtensible-x.png</PackageIcon>
 		<PackageIconUrl />
 		<LangVersion>latest</LangVersion>
-		<PackageVersion>3.1.0.0-beta</PackageVersion>
+		<PackageVersion>3.1.0.0</PackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -43,7 +43,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="TableStorage.Abstractions" Version="3.2.4" />
-		<PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.5.0-beta" />
+		<PackageReference Include="TableStorage.Abstractions.TableEntityConverters" Version="1.5.0" />
 		<PackageReference Include="Xtensible.Time.Clock" Version="1.1.0" />
 	</ItemGroup>
 
