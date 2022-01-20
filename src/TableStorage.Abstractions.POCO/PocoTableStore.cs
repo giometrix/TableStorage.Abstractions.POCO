@@ -825,10 +825,10 @@ namespace TableStorage.Abstractions.POCO ;
 		/// </exception>
 		public T GetRecord(TPartitionKey partitionKey, TRowKey rowKey)
 		{
-			if (partitionKey == null) {
+			if (partitionKey is null) {
 				throw new ArgumentNullException(nameof(partitionKey));
 			}
-			if (rowKey == null) {
+			if (rowKey is null) {
 				throw new ArgumentNullException(nameof(rowKey));
 			}
 

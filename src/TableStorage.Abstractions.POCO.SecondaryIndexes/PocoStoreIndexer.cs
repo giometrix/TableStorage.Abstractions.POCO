@@ -100,14 +100,14 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 						// if the index row wasn't there there is nothing to do
 					}
 				};
-				tableStore.OnTableDeleted += (name, table) => {
+				tableStore.OnTableDeleted += (_, table) => {
 					lock (_indexLock) {
 						_indexes.Remove(indexName);
 						_conditionalIndexFunctions.Remove(indexName);
 					}
 					indexStore.DeleteTable();
 				};
-				tableStore.OnTableDeletedAsync += async (name, table) => {
+				tableStore.OnTableDeletedAsync += async (_, table) => {
 					lock (_indexLock) {
 						_indexes.Remove(indexName);
 						_conditionalIndexFunctions.Remove(indexName);
