@@ -1,13 +1,11 @@
-﻿
-using Microsoft.Azure.Cosmos.Table;
+﻿using Azure.Data.Tables;
 
-namespace TableStorage.Abstractions.POCO
-{
-	public interface IKeysConverter<T, in TPartitionKey, in TRowKey> 
+namespace TableStorage.Abstractions.POCO;
+
+	public interface IKeysConverter<T, in TPartitionKey, in TRowKey>
 	{
-		DynamicTableEntity ToEntity(T obj);
-		T FromEntity(DynamicTableEntity entity);
+		TableEntity ToEntity(T obj);
+		T FromEntity(TableEntity entity);
 		string PartitionKey(TPartitionKey key);
 		string RowKey(TRowKey key);
 	}
-}

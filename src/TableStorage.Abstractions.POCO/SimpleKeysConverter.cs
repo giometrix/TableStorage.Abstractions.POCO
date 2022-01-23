@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Microsoft.Azure.Cosmos.Table;
+using Azure.Data.Tables;
 using Newtonsoft.Json;
 using TableStorage.Abstractions.TableEntityConverters;
 
-namespace TableStorage.Abstractions.POCO
-{
+namespace TableStorage.Abstractions.POCO ;
+
 	public class SimpleKeysConverter<T, TPartitionKey, TRowKey> : IKeysConverter<T, TPartitionKey, TRowKey>
 		where T : new()
 	{
 		private readonly Expression<Func<T, object>>[] _ignoredProperties;
 		private readonly JsonSerializerSettings _jsonSerializerSettings;
-		private readonly PropertyConverters<T> _propertyConverters;
 		private readonly Expression<Func<T, object>> _partitionProperty;
+		private readonly PropertyConverters<T> _propertyConverters;
 		private readonly Expression<Func<T, object>> _rowProperty;
 
 		public SimpleKeysConverter(Expression<Func<T, object>> partitionProperty,
-			Expression<Func<T, object>> rowProperty, JsonSerializerSettings jsonSerializerSettings, 
+			Expression<Func<T, object>> rowProperty, JsonSerializerSettings jsonSerializerSettings,
 			PropertyConverters<T> propertyConverters,
 			Expression<Func<T, object>>[] ignoredProperties)
 		{
@@ -27,12 +27,12 @@ namespace TableStorage.Abstractions.POCO
 			_propertyConverters = propertyConverters ?? new PropertyConverters<T>();
 		}
 
-		public DynamicTableEntity ToEntity(T obj)
+		public TableEntity ToEntity(T obj)
 		{
 			return obj.ToTableEntity(_partitionProperty, _rowProperty, _jsonSerializerSettings, _propertyConverters, _ignoredProperties);
 		}
 
-		public T FromEntity(DynamicTableEntity entity)
+		public T FromEntity(TableEntity entity)
 		{
 			return entity.FromTableEntity<T, TPartitionKey, TRowKey>(_partitionProperty, _rowProperty, _jsonSerializerSettings, _propertyConverters);
 		}
@@ -47,4 +47,3 @@ namespace TableStorage.Abstractions.POCO
 			return key.ToString();
 		}
 	}
-}
