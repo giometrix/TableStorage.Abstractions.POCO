@@ -34,6 +34,7 @@
 		<PackageIcon>xtensible-x.png</PackageIcon>
 		<PackageIconUrl />
 		<LangVersion>latest</LangVersion>
+		<PackageVersion>3.2.0.0-beta</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 

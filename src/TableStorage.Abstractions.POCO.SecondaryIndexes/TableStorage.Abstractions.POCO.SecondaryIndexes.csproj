@@ -1,23 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>1.3.0.0</Version>
+		<Version>1.4.0.0</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Authors>Giovanni Galbo</Authors>
 		<Company>Giovanni Galbo</Company>
 		<Description>Geared more toward Azure Table Storage (vs CosmosDB, which has an ATS api), using an intra/inter partition (or table) secondary index pattern.  This library handles keeping the indexes up to date as data gets mutated.</Description>
-		<Copyright>2020</Copyright>
+		<Copyright>2022</Copyright>
 		<PackageIcon>xtensible-x.png</PackageIcon>
 		<RepositoryUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</RepositoryUrl>
 		<PackageTags>table-storage azure-table-storage poco table-entities tableentity index secondary-index</PackageTags>
-		<AssemblyVersion>1.3.0.0</AssemblyVersion>
+		<AssemblyVersion>1.4.0.0</AssemblyVersion>
 		<PackageReleaseNotes>Updated underlying table storage</PackageReleaseNotes>
-		<FileVersion>1.3.0.0</FileVersion>
+		<FileVersion>1.4.0.0</FileVersion>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<PackageVersion>1.3.2.0</PackageVersion>
+		<PackageProjectUrl>https://github.com/giometrix/TableStorage.Abstractions.POCO</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -28,11 +29,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="TableStorage.Abstractions.POCO" Version="3.1.0" />
+		<PackageReference Include="TableStorage.Abstractions.POCO" Version="3.2.0-beta" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
 </Project>
