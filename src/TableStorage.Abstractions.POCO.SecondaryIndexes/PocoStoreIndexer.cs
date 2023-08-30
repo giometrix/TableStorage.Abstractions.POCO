@@ -11,7 +11,9 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 	public static class PocoStoreIndexer
 	{
 		private readonly static Dictionary<string, dynamic> _indexes = new Dictionary<string, dynamic>();
-		private readonly static Dictionary<string, dynamic> _conditionalIndexFunctions = new Dictionary<string, dynamic>();
+
+		private readonly static Dictionary<string, dynamic> _conditionalIndexFunctions =
+			new Dictionary<string, dynamic>();
 
 		private readonly static object _indexLock = new object();
 
@@ -26,7 +28,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="tableStore"></param>
 		/// <param name="indexName"></param>
 		/// <param name="indexStore"></param>
-		public static void AddIndex<T, TPartitionKey, TRowKey, TIndexPartitionKey, TIndexRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
+		public static void AddIndex<T, TPartitionKey, TRowKey, TIndexPartitionKey, TIndexRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
 			string indexName,
 			IPocoTableStore<T, TIndexPartitionKey, TIndexRowKey> indexStore, Func<T, bool> indexCondition = null)
 		{
@@ -34,6 +37,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 				if (_indexes.ContainsKey(indexName)) {
 					throw new ArgumentException($"{indexName} has already been added");
 				}
+
 				_indexes[indexName] = indexStore;
 
 				if (indexCondition == null) {
@@ -59,13 +63,13 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 						}
 					};
 
-					tableStore.OnRecordInsertedOrUpdatedAsync += async record => {
+					tableStore.OnRecordInsertedOrUpdatedAsync += async (record, cancellationToken) => {
 						if (indexCondition(record)) {
-							await indexStore.InsertOrReplaceAsync(record).ConfigureAwait(false);
+							await indexStore.InsertOrReplaceAsync(record, cancellationToken).ConfigureAwait(false);
 						}
 						else {
 							try {
-								await indexStore.DeleteAsync(record).ConfigureAwait(false);
+								await indexStore.DeleteAsync(record, cancellationToken).ConfigureAwait(false);
 							}
 							catch (RequestFailedException e) when (e.Status == 404) {
 								// if the index row wasn't there there is nothing to do
@@ -78,9 +82,9 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 						indexStore.Insert(pass);
 					};
 
-					tableStore.OnRecordsInsertedAsync += async records => {
+					tableStore.OnRecordsInsertedAsync += async (records, cancellationToken) => {
 						IEnumerable<T> pass = records.Where(indexCondition);
-						await indexStore.InsertAsync(pass).ConfigureAwait(false);
+						await indexStore.InsertAsync(pass, cancellationToken).ConfigureAwait(false);
 					};
 				}
 
@@ -92,9 +96,9 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 						// if the index row wasn't there there is nothing to do
 					}
 				};
-				tableStore.OnRecordDeletedAsync += async obj => {
+				tableStore.OnRecordDeletedAsync += async (obj, cancellationToken) => {
 					try {
-						await indexStore.DeleteAsync(obj).ConfigureAwait(false);
+						await indexStore.DeleteAsync(obj, cancellationToken).ConfigureAwait(false);
 					}
 					catch (RequestFailedException e) when (e.Status == 404) {
 						// if the index row wasn't there there is nothing to do
@@ -105,14 +109,16 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 						_indexes.Remove(indexName);
 						_conditionalIndexFunctions.Remove(indexName);
 					}
+
 					indexStore.DeleteTable();
 				};
-				tableStore.OnTableDeletedAsync += async (_, table) => {
+				tableStore.OnTableDeletedAsync += async (_, table, cancellationToken) => {
 					lock (_indexLock) {
 						_indexes.Remove(indexName);
 						_conditionalIndexFunctions.Remove(indexName);
 					}
-					await indexStore.DeleteTableAsync().ConfigureAwait(false);
+
+					await indexStore.DeleteTableAsync(cancellationToken).ConfigureAwait(false);
 				};
 			}
 		}
@@ -126,7 +132,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <typeparam name="TRowKey"></typeparam>
 		/// <param name="tableStore"></param>
 		/// <param name="indexName"></param>
-		public static void RemoveIndex<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName)
+		public static void RemoveIndex<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName)
 		{
 			lock (_indexLock) {
 				if (_indexes.ContainsKey(indexName)) {
@@ -144,7 +151,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <typeparam name="TRowKey"></typeparam>
 		/// <param name="tableStore"></param>
 		/// <param name="indexName"></param>
-		public static void DropIndex<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName)
+		public static void DropIndex<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName)
 		{
 			var indexStore = _indexes[indexName];
 			indexStore.DeleteTable();
@@ -159,7 +167,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <typeparam name="TRowKey"></typeparam>
 		/// <param name="tableStore"></param>
 		/// <param name="indexName"></param>
-		public static Task DropIndexAsync<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName)
+		public static Task DropIndexAsync<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName)
 		{
 			var indexStore = _indexes[indexName];
 			RemoveIndex(tableStore, indexName);
@@ -177,7 +186,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="partitionKey"></param>
 		/// <param name="rowKey"></param>
 		/// <returns></returns>
-		public static T GetRecordByIndex<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, string partitionKey,
+		public static T GetRecordByIndex<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, string partitionKey,
 			string rowKey)
 		{
 			try {
@@ -202,7 +212,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="partitionKey"></param>
 		/// <param name="rowKey"></param>
 		/// <returns></returns>
-		public static T GetRecordByIndex<T, TPartitionKey, TRowKey, TIndexPartitionKey, TIndexRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
+		public static T GetRecordByIndex<T, TPartitionKey, TRowKey, TIndexPartitionKey, TIndexRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
 			string indexName, TIndexPartitionKey partitionKey, TIndexRowKey rowKey)
 		{
 			try {
@@ -225,7 +236,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="partitionKey"></param>
 		/// <param name="rowKey"></param>
 		/// <returns></returns>
-		public static Task<T> GetRecordByIndexAsync<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+		public static Task<T> GetRecordByIndexAsync<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
 			string partitionKey, string rowKey)
 		{
 			try {
@@ -251,7 +263,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="rowKey"></param>
 		/// <returns></returns>
 		public static Task<T> GetRecordByIndexAsync<T, TPartitionKey, TRowKey, TIndexPartitionKey, TIndexRowKey>(
-			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, TIndexPartitionKey partitionKey, TIndexRowKey rowKey)
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+			TIndexPartitionKey partitionKey, TIndexRowKey rowKey)
 		{
 			try {
 				var indexStore = _indexes[indexName];
@@ -272,7 +285,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="indexName"></param>
 		/// <param name="partitionKey"></param>
 		/// <returns></returns>
-		public static IEnumerable<T> GetByIndexPartitionKey<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+		public static IEnumerable<T> GetByIndexPartitionKey<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
 			string partitionKey)
 		{
 			try {
@@ -294,7 +308,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="indexName"></param>
 		/// <param name="partitionKey"></param>
 		/// <returns></returns>
-		public static Task<IEnumerable<T>> GetByIndexPartitionKeyAsync<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
+		public static Task<IEnumerable<T>> GetByIndexPartitionKeyAsync<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
 			string indexName, string partitionKey)
 		{
 			try {
@@ -318,7 +333,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="partitionKey"></param>
 		/// <returns></returns>
 		public static IEnumerable<T> GetByIndexPartitionKey<T, TPartitionKey, TRowKey, TIndexPartitionKey>(
-			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, TIndexPartitionKey partitionKey)
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+			TIndexPartitionKey partitionKey)
 		{
 			try {
 				var indexStore = _indexes[indexName];
@@ -341,7 +357,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="partitionKey"></param>
 		/// <returns></returns>
 		public static Task<IEnumerable<T>> GetByIndexPartitionKeyAsync<T, TPartitionKey, TRowKey, TIndexPartitionKey>(
-			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, TIndexPartitionKey partitionKey)
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+			TIndexPartitionKey partitionKey)
 		{
 			try {
 				var indexStore = _indexes[indexName];
@@ -365,7 +382,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="pageSize"></param>
 		/// <param name="continuationTokenJson"></param>
 		/// <returns></returns>
-		public static PagedResult<T> GetByIndexPartitionKeyPaged<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
+		public static PagedResult<T> GetByIndexPartitionKeyPaged<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
 			string indexName, string partitionKey, int pageSize = 100,
 			string continuationTokenJson = null)
 		{
@@ -392,7 +410,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="continuationTokenJson"></param>
 		/// <returns></returns>
 		public static PagedResult<T> GetByIndexPartitionKeyPaged<T, TPartitionKey, TRowKey, TIndexPartitionKey>(
-			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, TIndexPartitionKey partitionKey, int pageSize = 100,
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+			TIndexPartitionKey partitionKey, int pageSize = 100,
 			string continuationTokenJson = null)
 		{
 			try {
@@ -416,7 +435,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="pageSize"></param>
 		/// <param name="continuationTokenJson"></param>
 		/// <returns></returns>
-		public static Task<PagedResult<T>> GetByIndexPartitionKeyPagedAsync<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
+		public static Task<PagedResult<T>> GetByIndexPartitionKeyPagedAsync<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore,
 			string indexName, string partitionKey, int pageSize = 100,
 			string continuationTokenJson = null)
 		{
@@ -442,8 +462,10 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="pageSize"></param>
 		/// <param name="continuationTokenJson"></param>
 		/// <returns></returns>
-		public static Task<PagedResult<T>> GetByIndexPartitionKeyPagedAsync<T, TPartitionKey, TRowKey, TIndexPartitionKey>(
-			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName, TIndexPartitionKey partitionKey, int pageSize = 100,
+		public static Task<PagedResult<T>> GetByIndexPartitionKeyPagedAsync<T, TPartitionKey, TRowKey,
+			TIndexPartitionKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+			TIndexPartitionKey partitionKey, int pageSize = 100,
 			string continuationTokenJson = null)
 		{
 			try {
@@ -468,7 +490,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="tableStore"></param>
 		/// <param name="indexName"></param>
 		/// <returns></returns>
-		public static IPocoTableStore<T, TIndexPartitionKey, TIndexRowKey> Index<T, TPartitionKey, TRowKey, TIndexPartitionKey, TIndexRowKey>(
+		public static IPocoTableStore<T, TIndexPartitionKey, TIndexRowKey> Index<T, TPartitionKey, TRowKey,
+			TIndexPartitionKey, TIndexRowKey>(
 			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName)
 		{
 			try {
@@ -493,9 +516,12 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 		/// <param name="maxDegreeOfParallelism">The maximum degree of parallelism.</param>
 		/// <param name="recordsIndexedCallback">The records indexed callback.</param>
 		/// <param name="failedIndexCallback">The failed index callback.</param>
+		/// <param name="cancellationToken"></param>
 		/// <exception cref="ArgumentException"></exception>
-		async public static Task ReindexAsync<T, TPartitionKey, TRowKey>(this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
-			int? maxDegreeOfParallelism = null, Action<int> recordsIndexedCallback = null, Action<T, Exception> failedIndexCallback = null)
+		public static async Task ReindexAsync<T, TPartitionKey, TRowKey>(
+			this IPocoTableStore<T, TPartitionKey, TRowKey> tableStore, string indexName,
+			int? maxDegreeOfParallelism = null, Action<int> recordsIndexedCallback = null,
+			Action<T, Exception> failedIndexCallback = null, CancellationToken cancellationToken = default)
 		{
 			maxDegreeOfParallelism = maxDegreeOfParallelism ?? Environment.ProcessorCount * 20;
 
@@ -510,7 +536,7 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 				try {
 					var indexStore = _indexes[indexName];
 					do {
-						PagedResult<T> result = await tableStore.GetAllRecordsPagedAsync(1000, pageToken);
+						PagedResult<T> result = await tableStore.GetAllRecordsPagedAsync(1000, pageToken, cancellationToken);
 						pageToken = result.ContinuationToken;
 						var insertOrReplaceAsync = indexStore.GetType().GetMethod("InsertOrReplaceAsync");
 
@@ -518,8 +544,8 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 							foreach (T record in result.Items) {
 								//Task task = indexStore.InsertOrReplaceAsync(record); //this line worked in the unit tests but not in a console app.  Not sure why.
 								if (indexCondition == null || indexCondition(record)) {
-									await semaphore.WaitAsync(TimeSpan.FromSeconds(20)).ConfigureAwait(false);
-									var task = (Task)insertOrReplaceAsync.Invoke(indexStore, new object[] { record });
+									await semaphore.WaitAsync(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
+									var task = (Task)insertOrReplaceAsync.Invoke(indexStore, new object[] { record, cancellationToken });
 									task.ContinueWith(r => {
 										if (r.IsFaulted) {
 											failedIndexCallback?.Invoke(record, r.Exception);
@@ -536,8 +562,9 @@ namespace TableStorage.Abstractions.POCO.SecondaryIndexes
 					} while (pageToken != null);
 
 					while (semaphore.CurrentCount < maxDegreeOfParallelism) {
-						await Task.Delay(5).ConfigureAwait(false);
+						await Task.Delay(5, cancellationToken).ConfigureAwait(false);
 					}
+
 					recordsIndexedCallback?.Invoke(count);
 				}
 				catch (KeyNotFoundException e) {

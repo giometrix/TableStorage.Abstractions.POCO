@@ -927,7 +927,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 	/// <summary>
 	///     Occurs when on table created.
 	/// </summary>
-	public event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, Task> OnTableCreatedAsync;
+	public event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, CancellationToken, Task> OnTableCreatedAsync;
 
 	/// <summary>
 	///     Occurs when on table deleted.
@@ -937,7 +937,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 	/// <summary>
 	///     Occurs when on table deleted.
 	/// </summary>
-	public event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, Task> OnTableDeletedAsync;
+	public event Func<string, IPocoTableStore<T, TPartitionKey, TRowKey>, CancellationToken, Task> OnTableDeletedAsync;
 
 	/// <summary>
 	///     Occurs when on record inserted or updated.
@@ -947,7 +947,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 	/// <summary>
 	///     Occurs when on record inserted or updated.
 	/// </summary>
-	public event Func<T, Task> OnRecordInsertedOrUpdatedAsync;
+	public event Func<T, CancellationToken, Task> OnRecordInsertedOrUpdatedAsync;
 
 
 	/// <summary>
@@ -958,7 +958,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 	/// <summary>
 	///     Occurs when on records inserted.
 	/// </summary>
-	public event Func<IEnumerable<T>, Task> OnRecordsInsertedAsync;
+	public event Func<IEnumerable<T>, CancellationToken, Task> OnRecordsInsertedAsync;
 
 	/// <summary>
 	///     Occurs when on record deleted.
@@ -968,7 +968,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 	/// <summary>
 	///     Occurs when on record deleted.
 	/// </summary>
-	public event Func<T, Task> OnRecordDeletedAsync;
+	public event Func<T, CancellationToken, Task> OnRecordDeletedAsync;
 
 	/// <summary>
 	///     Deletes the record asynchronously.
@@ -981,7 +981,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 		TableEntity entity = CreateEntityWithEtag(record);
 		await _tableStore.DeleteAsync(entity, cancellationToken).ConfigureAwait(false);
 		if (OnRecordDeletedAsync != null) {
-			await OnRecordDeletedAsync(record).ConfigureAwait(false);
+			await OnRecordDeletedAsync(record, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -996,7 +996,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 		TableEntity entity = CreateEntity(record);
 		await _tableStore.DeleteUsingWildcardEtagAsync(entity, cancellationToken).ConfigureAwait(false);
 		if (OnRecordDeletedAsync != null) {
-			await OnRecordDeletedAsync(record).ConfigureAwait(false);
+			await OnRecordDeletedAsync(record, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -1009,7 +1009,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 	{
 		await _tableStore.DeleteTableAsync(cancellationToken).ConfigureAwait(false);
 		if (OnTableDeletedAsync != null) {
-			await OnTableDeletedAsync(_tableName, this).ConfigureAwait(false);
+			await OnTableDeletedAsync(_tableName, this, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -1097,7 +1097,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 	{
 		await _tableStore.CreateTableAsync(cancellationToken).ConfigureAwait(false);
 		if (OnTableCreatedAsync != null) {
-			await OnTableCreatedAsync(_tableName, this).ConfigureAwait(false);
+			await OnTableCreatedAsync(_tableName, this, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -1128,7 +1128,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 
 		await _tableStore.InsertAsync(entity, cancellationToken).ConfigureAwait(false);
 		if (OnRecordInsertedOrUpdatedAsync != null) {
-			await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			await OnRecordInsertedOrUpdatedAsync(record, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -1149,7 +1149,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 
 		await _tableStore.InsertOrReplaceAsync(entity, cancellationToken).ConfigureAwait(false);
 		if (OnRecordInsertedOrUpdatedAsync != null) {
-			await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			await OnRecordInsertedOrUpdatedAsync(record, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -1169,7 +1169,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 		IEnumerable<TableEntity> entities = CreateEntities(records);
 		await _tableStore.InsertAsync(entities, cancellationToken).ConfigureAwait(false);
 		if (OnRecordsInsertedAsync != null) {
-			await OnRecordsInsertedAsync(records).ConfigureAwait(false);
+			await OnRecordsInsertedAsync(records, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -1184,7 +1184,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 		TableEntity entity = CreateEntityWithEtag(record);
 		await _tableStore.UpdateAsync(entity, cancellationToken).ConfigureAwait(false);
 		if (OnRecordInsertedOrUpdatedAsync != null) {
-			await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			await OnRecordInsertedOrUpdatedAsync(record, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -1199,7 +1199,7 @@ public class PocoTableStore<T, TPartitionKey, TRowKey> : IPocoTableStore<T, TPar
 		TableEntity entity = CreateEntity(record);
 		await _tableStore.UpdateUsingWildcardEtagAsync(entity, cancellationToken).ConfigureAwait(false);
 		if (OnRecordInsertedOrUpdatedAsync != null) {
-			await OnRecordInsertedOrUpdatedAsync(record).ConfigureAwait(false);
+			await OnRecordInsertedOrUpdatedAsync(record, cancellationToken).ConfigureAwait(false);
 		}
 	}
 

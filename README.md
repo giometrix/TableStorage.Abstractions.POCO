@@ -8,6 +8,12 @@ This project builds on top of [TableStorage.Abstractions](https://github.com/Taz
 
 ## For secondary index support, check out [TableStorage.Abstractions.POCO.SecondaryIndexes](https://github.com/giometrix/TableStorage.Abstractions.POCO/tree/master/src/TableStorage.Abstractions.POCO.SecondaryIndexes)
 
+## :bangbang: Important Note About Versioning
+`TableStorage.Abstractions.POCO` uses semantic versioning.  Anything changes to a major release should not be breaking, e.g. upgrading to 1.5 from 1.4 should not require a code change.
+
+The upgrade from 3.3 to 4.0 introduces a small breaking change if you use asyncronous delegates, e.g. `OnRecordsInsertedAsync`. Most projects do not use these; however if you do, there is a minor change: you now must also accept a `CancellationToken` parameter.
+
+
 ## Examples
 Assume we have the following two classes, which we wish to serialize to and from Azure Table Storage:
 
