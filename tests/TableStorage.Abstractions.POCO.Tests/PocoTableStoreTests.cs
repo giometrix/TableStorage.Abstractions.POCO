@@ -73,7 +73,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
                 e => e.CompanyId,
                 e => e.Id);
 
-            tableStore.OnTableCreatedAsync += async (n, t) => tableName = n;
+            tableStore.OnTableCreatedAsync += async (n, t,ct) => tableName = n;
             await tableStore.CreateTableAsync();
             tableStore.DeleteTable();
             Assert.AreNotEqual("", tableName);
@@ -101,7 +101,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
                 e => e.CompanyId,
                 e => e.Id);
 
-            tableStore.OnTableDeletedAsync += async (n, t) => tableName = n;
+            tableStore.OnTableDeletedAsync += async (n, t, ct) => tableName = n;
             await tableStore.DeleteTableAsync();
             Assert.AreNotEqual("", tableName);
         }
@@ -311,7 +311,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
                 Id = 99,
                 Department = new Department { Id = 5, Name = "Test" }
             };
-            tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+            tableStore.OnRecordInsertedOrUpdatedAsync += async (r,ct) => wasCalled = true;
             await tableStore.InsertAsync(employee);
             Assert.IsTrue(wasCalled);
         }
@@ -341,7 +341,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
                 Id = 99,
                 Department = new Department { Id = 5, Name = "Test" }
             };
-            tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+            tableStore.OnRecordInsertedOrUpdatedAsync += async (r, ct) => wasCalled = true;
             await tableStore.InsertOrReplaceAsync(employee);
             Assert.IsTrue(wasCalled);
         }
@@ -406,7 +406,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
                 Id = 299,
                 Department = new Department { Id = 52, Name = "Test2" }
             };
-            tableStore.OnRecordsInsertedAsync += async r => wasCalled = true;
+            tableStore.OnRecordsInsertedAsync += async (r, ct) => wasCalled = true;
             await tableStore.InsertAsync(new[] { employee, employee2 });
             Assert.IsTrue(wasCalled);
         }
@@ -1008,7 +1008,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
                 Name = "Mr. Jim CEO",
                 Department = new Department { Id = 22, Name = "Executive" }
             };
-            tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+            tableStore.OnRecordInsertedOrUpdatedAsync += async (r, ct) => wasCalled = true;
             await tableStore.UpdateAsync(employee);
             Assert.IsTrue(wasCalled);
         }
@@ -1039,7 +1039,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
                 Name = "Mr. Jim CEO",
                 Department = new Department { Id = 22, Name = "Executive" }
             };
-            tableStore.OnRecordInsertedOrUpdatedAsync += async r => wasCalled = true;
+            tableStore.OnRecordInsertedOrUpdatedAsync += async (r, ct) => wasCalled = true;
             await tableStore.UpdateUsingWildcardEtagAsync(employee);
             Assert.IsTrue(wasCalled);
         }
@@ -1104,7 +1104,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
         {
             var wasCalled = false;
             var employee = new Employee { CompanyId = 1, Id = 1 };
-            tableStore.OnRecordDeletedAsync += async r => wasCalled = true;
+            tableStore.OnRecordDeletedAsync += async (r, ct) => wasCalled = true;
             await tableStore.DeleteAsync(employee);
             Assert.IsTrue(wasCalled);
         }
@@ -1123,7 +1123,7 @@ namespace TableStorage.Abstractions.POCO.Tests ;
         {
             var wasCalled = false;
             var employee = new Employee { CompanyId = 1, Id = 1 };
-            tableStore.OnRecordDeletedAsync += async r => wasCalled = true;
+            tableStore.OnRecordDeletedAsync += async (r, ct) => wasCalled = true;
             await tableStore.DeleteUsingWildcardEtagAsync(employee);
             Assert.IsTrue(wasCalled);
         }
