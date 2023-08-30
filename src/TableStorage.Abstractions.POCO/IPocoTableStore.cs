@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using TableStorage.Abstractions.Models;
 
@@ -179,87 +180,99 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <summary>
 		///     Creates the table storage table asynchronously.
 		/// </summary>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task.</returns>
-		Task CreateTableAsync();
+		Task CreateTableAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Checks if the table storage table exists asynchronously.
 		/// </summary>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;System.Boolean&gt;.</returns>
-		Task<bool> TableExistsAsync();
+		Task<bool> TableExistsAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Inserts the record into the table storage table, asynchronously.
 		/// </summary>
 		/// <param name="record">The record.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task.</returns>
 		/// <exception cref="ArgumentNullException">record</exception>
-		Task InsertAsync(T record);
+		Task InsertAsync(T record, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Inserts the records asynchronously.
 		/// </summary>
 		/// <param name="records">The records.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task.</returns>
 		/// <exception cref="ArgumentNullException">records</exception>
-		Task InsertAsync(IEnumerable<T> records);
+		Task InsertAsync(IEnumerable<T> records, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Inserts the record if it does not exist, else updates the record.
 		/// </summary>
 		/// <param name="record">The record</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task</returns>
 		/// <exception cref="ArgumentNullException">record</exception>
-		Task InsertOrReplaceAsync(T record);
+		Task InsertOrReplaceAsync(T record, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Updates the record asynchronously.
 		/// </summary>
 		/// <param name="record">The record.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task.</returns>
-		Task UpdateAsync(T record);
+		Task UpdateAsync(T record, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Updates the using record without an etag asynchronously.
 		/// </summary>
 		/// <param name="record">The record.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task.</returns>
-		Task UpdateUsingWildcardEtagAsync(T record);
+		Task UpdateUsingWildcardEtagAsync(T record, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Deletes the record asynchronously.
 		/// </summary>
 		/// <param name="record">The record.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task.</returns>
-		Task DeleteAsync(T record);
+		Task DeleteAsync(T record, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Deletes the record without an etag asynchronously.
 		/// </summary>
 		/// <param name="record">The record.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task.</returns>
-		Task DeleteUsingWildcardEtagAsync(T record);
+		Task DeleteUsingWildcardEtagAsync(T record, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Deletes the table asynchronously.
 		/// </summary>
+		/// <param name="cancellationToken"
 		/// <returns>Task.</returns>
-		Task DeleteTableAsync();
+		Task DeleteTableAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
-		///     get the  record by partition key and row key asyncronously."/>
+		///     get the  record by partition key and row key asynchronously."/>
 		/// </summary>
 		/// <param name="partitionKey">The partition key.</param>
 		/// <param name="rowKey">The row key.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;T&gt;.</returns>
-		Task<T> GetRecordAsync(string partitionKey, string rowKey);
+		Task<T> GetRecordAsync(string partitionKey, string rowKey, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by partition key asynchronously.
 		/// </summary>
 		/// <param name="partitionKey">The partition key.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetByPartitionKeyAsync(string partitionKey);
+		Task<IEnumerable<T>> GetByPartitionKeyAsync(string partitionKey, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the by records partition key paged asynchronous.
@@ -267,9 +280,10 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="partitionKey">The partition key.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByPartitionKeyPagedAsync(string partitionKey, int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the by records by row key asynchronously.  This method may be slow if there is a high volume of
@@ -277,8 +291,9 @@ namespace TableStorage.Abstractions.POCO ;
 		///     <see cref="PocoTableStore{T,TPartitionKey,TRowKey}.GetByPartitionKeyAsync(string)" />
 		/// </summary>
 		/// <param name="rowKey">The row key.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetByRowKeyAsync(string rowKey);
+		Task<IEnumerable<T>> GetByRowKeyAsync(string rowKey, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the by records by row key asynchronously.  This method may be slow if there is a high volume of
@@ -288,17 +303,19 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="rowKey">The row key.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByRowKeyPagedAsync(string rowKey, int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets all records asynchronously.  This method may be slow if there is a high volume of
 		///     data across many partitions, prefer to use
 		///     <see cref="PocoTableStore{T,TPartitionKey,TRowKey}.GetByPartitionKeyAsync(string)" />
 		/// </summary>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetAllRecordsAsync();
+		Task<IEnumerable<T>> GetAllRecordsAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets all records asynchronously.  This method may be slow if there is a high volume of
@@ -307,15 +324,17 @@ namespace TableStorage.Abstractions.POCO ;
 		/// </summary>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="pageToken">The page token.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
-		Task<PagedResult<T>> GetAllRecordsPagedAsync(int pageSize = 100, string pageToken = null);
+		Task<PagedResult<T>> GetAllRecordsPagedAsync(int pageSize = 100, string pageToken = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the record count asynchronously.  This method may be slow if there is a high volume of
 		///     data across many partitions
 		/// </summary>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;System.Int32&gt;.</returns>
-		Task<int> GetRecordCountAsync();
+		Task<int> GetRecordCountAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by filter.  Note that the filter is applied after the table storage query, so prefer to use Gets
@@ -325,8 +344,9 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="filter">The filter.</param>
 		/// <param name="start">The start.</param>
 		/// <param name="pageSize">Size of the page.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetRecordsByFilterAsync(Func<T, bool> filter, int start, int pageSize);
+		Task<IEnumerable<T>> GetRecordsByFilterAsync(Func<T, bool> filter, int start, int pageSize, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by partition key async.
@@ -376,8 +396,9 @@ namespace TableStorage.Abstractions.POCO ;
 		/// </summary>
 		/// <param name="partitionKey">The partition key.</param>
 		/// <param name="filter">The filter.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetByPartitionKeyAsync(string partitionKey, Func<T, bool> filter);
+		Task<IEnumerable<T>> GetByPartitionKeyAsync(string partitionKey, Func<T, bool> filter, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets records by partition key as an asynchronous operation.
@@ -386,10 +407,11 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="filter">The filter.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByPartitionKeyPagedAsync(string partitionKey, Func<T, bool> filter,
 			int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets records by row key. This method may be slow if there is a high volume of
@@ -398,8 +420,9 @@ namespace TableStorage.Abstractions.POCO ;
 		/// </summary>
 		/// <param name="rowKey">The row key.</param>
 		/// <param name="filter">The filter.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetByRowKeyAsync(string rowKey, Func<T, bool> filter);
+		Task<IEnumerable<T>> GetByRowKeyAsync(string rowKey, Func<T, bool> filter, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets records by row key. This method may be slow if there is a high volume of
@@ -410,9 +433,10 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="filter">The filter.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByRowKeyPagedAsync(string rowKey, Func<T, bool> filter, int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the record by partition key and row key.
@@ -515,29 +539,32 @@ namespace TableStorage.Abstractions.POCO ;
 		/// </summary>
 		/// <param name="partitionKey">The partition key.</param>
 		/// <param name="rowKey">The row key.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;T&gt;.</returns>
 		/// <exception cref="ArgumentNullException">
 		///     partitionKey
 		///     or
 		///     rowKey
 		/// </exception>
-		Task<T> GetRecordAsync(TPartitionKey partitionKey, TRowKey rowKey);
+		Task<T> GetRecordAsync(TPartitionKey partitionKey, TRowKey rowKey, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by partition key asynchronous.
 		/// </summary>
 		/// <param name="partitionKey">The partition key.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetByPartitionKeyAsync(TPartitionKey partitionKey);
+		Task<IEnumerable<T>> GetByPartitionKeyAsync(TPartitionKey partitionKey, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the by records partition key asynchronous.
 		/// </summary>
 		/// <param name="partitionKey">The partition key.</param>
 		/// <param name="filter">The filter.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
 		/// <exception cref="ArgumentNullException">partitionKey</exception>
-		Task<IEnumerable<T>> GetByPartitionKeyAsync(TPartitionKey partitionKey, Func<T, bool> filter);
+		Task<IEnumerable<T>> GetByPartitionKeyAsync(TPartitionKey partitionKey, Func<T, bool> filter, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by partition key paged asynchronous.
@@ -545,9 +572,10 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="partitionKey">The partition key.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByPartitionKeyPagedAsync(TPartitionKey partitionKey, int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by partition key paged asynchronous.
@@ -556,11 +584,12 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="filter">The filter.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		/// <exception cref="ArgumentNullException">partitionKey</exception>
 		Task<PagedResult<T>> GetByPartitionKeyPagedAsync(TPartitionKey partitionKey, Func<T, bool> filter,
 			int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by row key asynchronous.  This method may be slow if there is a high volume of
@@ -568,8 +597,9 @@ namespace TableStorage.Abstractions.POCO ;
 		///     <see cref="PocoTableStore{T,TPartitionKey,TRowKey}.GetByPartitionKeyAsync(string)" />
 		/// </summary>
 		/// <param name="rowKey">The row key.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
-		Task<IEnumerable<T>> GetByRowKeyAsync(TRowKey rowKey);
+		Task<IEnumerable<T>> GetByRowKeyAsync(TRowKey rowKey, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by row key asynchronous.  This method may be slow if there is a high volume of
@@ -578,9 +608,10 @@ namespace TableStorage.Abstractions.POCO ;
 		/// </summary>
 		/// <param name="rowKey">The row key.</param>
 		/// <param name="filter">The filter.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;IEnumerable&lt;T&gt;&gt;.</returns>
 		/// <exception cref="ArgumentNullException">rowKey</exception>
-		Task<IEnumerable<T>> GetByRowKeyAsync(TRowKey rowKey, Func<T, bool> filter);
+		Task<IEnumerable<T>> GetByRowKeyAsync(TRowKey rowKey, Func<T, bool> filter, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by row key asynchronous.  This method may be slow if there is a high volume of
@@ -590,9 +621,10 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="rowKey">The row key.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByRowKeyPagedAsync(TRowKey rowKey, int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Gets the records by row key asynchronous.  This method may be slow if there is a high volume of
@@ -603,9 +635,10 @@ namespace TableStorage.Abstractions.POCO ;
 		/// <param name="filter">The filter.</param>
 		/// <param name="pageSize">Size of the page.</param>
 		/// <param name="continuationTokenJson">The continuation token json.</param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>Task&lt;PagedResult&lt;T&gt;&gt;.</returns>
 		Task<PagedResult<T>> GetByRowKeyPagedAsync(TRowKey rowKey, Func<T, bool> filter, int pageSize = 100,
-			string continuationTokenJson = null);
+			string continuationTokenJson = null, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		///     Occurs when on table created.
