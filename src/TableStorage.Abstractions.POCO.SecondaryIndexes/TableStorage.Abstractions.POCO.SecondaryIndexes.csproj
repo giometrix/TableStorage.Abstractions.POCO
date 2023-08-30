@@ -33,10 +33,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\TableStorage.Abstractions.POCO\TableStorage.Abstractions.POCO.csproj" />
+		<PackageReference Include="TableStorage.Abstractions.POCO" Version="4.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
